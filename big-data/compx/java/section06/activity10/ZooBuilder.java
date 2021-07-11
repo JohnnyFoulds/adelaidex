@@ -56,7 +56,7 @@ class Panda extends Animal {
      * Set the default name and species.
      */
     public Panda() {
-        super("Spot", "Ailuropoda melanoleuca", 0);
+        super("Spot", "Panda", 0);
     }
 
     /**
@@ -80,7 +80,7 @@ class Elephant extends Animal {
      * Set the default name and species.
      */
     public Elephant() {
-        super("Elle", "Loxodonta africana", 0);
+        super("Elle", "Elephant", 0);
     }
 
     /**
@@ -104,7 +104,7 @@ class Lion extends Animal {
      * Set the default name and species.
      */
     public Lion() {
-        super("Alex", "Panthera leo", 0);
+        super("Alex", "Lion", 0);
     }
 
     /**
@@ -129,7 +129,7 @@ class Springbok extends Animal {
      * Set the default name and species.
      */
     public Springbok() {
-        super("Francois Pienaar", "Antidorcas marsupialis", 0);
+        super("Francois Pienaar", "Springbok", 0);
     }
 
     /**
@@ -153,7 +153,7 @@ class Zebra extends Animal {
      * Set the default name and species.
      */
     public Zebra() {
-        super("Marty", "Equus quagga", 0);
+        super("Marty", "Zebra", 0);
     }
 
     /**
