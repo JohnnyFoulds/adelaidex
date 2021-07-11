@@ -1,0 +1,103 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+# Cars Test
+
+```{r}
+summary(cars)
+```
+```{r}
+ggplot(cars, aes(dist)) +
+  geom_histogram()
+```
+```{r}
+cars %>%
+  mutate(logdist=log10(dist + 1)) %>%
+  ggplot(aes(logdist)) + 
+  geom_histogram()
+```
+```{r}
+cars %>%
+  ggplot(aes(x=dist, y=speed)) +
+  geom_point() +
+  geom_smooth()
+```
+
+```{r}
+library(caret)
+
+bc <- BoxCoxTrans(cars$speed,cars$dist)
+bc
+```
+
+```{r}
+tcars <- mutate(cars, TransformedSpeed = predict(bc, cars$speed))
+
+ggplot(tcars,aes(x=dist, y=TransformedSpeed)) + 
+  geom_point() + 
+  geom_smooth()
+```
+
+# z-score
+
+\[ z = \frac{x - \bar{x}}{s} \]
+
+z = (x - mean) / sd
+
+```{r}
+data_mean = 29.314
+data_sd = 73.376
+
+player_goals = 1360
+player_z = (player_goals - data_mean) / data_sd
+player_z
+```
+# PCA
+
+```{r}
+install.packages("mlbench")
+library(mlbench)
+data(BreastCancer)
+```
+```{r}
+BreastCancer <- as_tibble(BreastCancer)
+BreastCancer
+```
+
+```{r}
+BreastCancer <- na.omit(BreastCancer)
+predictors <- BreastCancer %>% select(Cl.thickness:Mitoses)
+predictors 
+```
+
+```{r}
+predictors <- predictors %>% mutate_all( ~as.numeric(.) )
+predictors
+```
+
+```{r}
+PCA <- princomp(predictors, scores = TRUE)
+BreastCancer$PC1 <- PCA$scores[,1]
+BreastCancer$PC2 <- PCA$scores[,2]
+
+ggplot(BreastCancer,aes(PC1, PC2)) +
+geom_point(aes(col = Class))
+```
+

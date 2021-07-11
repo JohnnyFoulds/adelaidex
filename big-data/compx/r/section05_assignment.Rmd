@@ -1,0 +1,135 @@
+---
+title: "Section 5 Assignment"
+output: html_notebook
+---
+
+## Import libraries
+
+```{r}
+library(tidyverse)
+library(ape)
+library(seqinr)
+library(stringr)
+```
+
+## Data Load
+```{r}
+# load the dog genome
+dog_ch38 <- read.GenBank("NC_006620.3")
+dog_ch38 <- dog_ch38$NC_006620.3[1:100000]
+dog_ch38 <- c2s(ape::as.character.DNAbin(dog_ch38))
+dog_ch38 <- str_to_upper(dog_ch38)
+
+# first 200 nucleotides
+str_sub(dog_ch38, 1, 200)
+```
+## Count the 5-mers
+
+```{r}
+k <- 5
+dog_seq <- s2c(str_to_lower(dog_ch38))
+
+kmers <- seqinr::count(seq=dog_seq, wordsize=k)
+kmers
+```
+
+## Get the Probability Table
+
+```{r}
+kmers_prob <- prop.table(kmers)
+kmers_tibble <- as_tibble(kmers_prob, .name_repair = ~ c("kmer", "Freq"))
+kmers_tibble
+```
+
+## Get the Proportion of a kmer
+
+```{r}
+kmers_tibble %>%
+  filter(kmer == "aataa")
+```
+## PART 2
+
+```{r}
+get_DNA_sample <- function(DNA, n){
+  N <- str_length(DNA)
+  start <- sample(1:(N - n + 1), size = 1)
+  return(str_sub(DNA, start, start + n - 1))
+}
+```
+
+```{r}
+n <- 100
+k <- 5
+kmer_target <- "aataa"
+
+# the array hold the sample proportions
+kmers_seq <- numeric(n)
+kmers_prop <- numeric(n)
+
+# set the random seed
+set.seed(2017)
+
+for( i in 1:n) {
+  dna_sample <- get_DNA_sample(str_to_lower(dog_ch38), 1000)
+  kmers_seq[i] <- dna_sample
+
+  kmers <- seqinr::count(seq=s2c(dna_sample), wordsize=k)
+  kmer_prop <- as_tibble(prop.table(kmers), .name_repair = ~ c("kmer", "Freq")) %>%
+    filter(kmer == kmer_target) %>%
+    magrittr::extract2("Freq")
+  
+  # add the sample to the kmer probs array
+  kmers_prop[i] <- kmer_prop
+}
+
+kmers_prop
+c(mean=mean(kmers_prop, na.rm=TRUE), sd=sd(kmers_prop, na.rm=TRUE))
+```
+
+### 2.3 Histogram
+
+```{r}
+as_tibble(kmers_prop, .name_repair = ~ c("Freq")) %>%
+  ggplot(aes(Freq)) + 
+  geom_histogram()
+```
+
+### 3.1 n = 5000
+
+```{r}
+samples <- 5000
+n <- 100
+k <- 5
+kmer_target <- "aataa"
+
+# the array hold the sample proportions
+kmers_seq <- numeric(n)
+kmers_prop <- numeric(n)
+
+# set the random seed
+set.seed(2017)
+
+for( i in 1:n) {
+  dna_sample <- get_DNA_sample(str_to_lower(dog_ch38), samples)
+  kmers_seq[i] <- dna_sample
+
+  kmers <- seqinr::count(seq=s2c(dna_sample), wordsize=k)
+  kmer_prop <- as_tibble(prop.table(kmers), .name_repair = ~ c("kmer", "Freq")) %>%
+    filter(kmer == kmer_target) %>%
+    magrittr::extract2("Freq")
+  
+  # add the sample to the kmer probs array
+  kmers_prop[i] <- kmer_prop
+}
+
+kmers_prop
+c(mean=mean(kmers_prop, na.rm=TRUE), sd=sd(kmers_prop, na.rm=TRUE))
+```
+
+### 3.2 Histogram
+
+```{r}
+as_tibble(kmers_prop, .name_repair = ~ c("Freq")) %>%
+  ggplot(aes(Freq)) + 
+  geom_histogram()
+```

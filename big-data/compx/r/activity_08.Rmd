@@ -1,0 +1,62 @@
+---
+title: "Activity 08"
+output: html_notebook
+---
+
+```{r}
+small_data <- data.frame( 
+                 X = c(1,1,-1,1),
+                 Y = c(1,-1,1,1),
+                 Z = c(1,1,1,-1)) 
+small_data
+```
+
+
+## Part 1
+
+Use the `small_data` dataframe containing the data matrix D to produce a scatterplot of Y against X, Z against X, and Z against Y. When you have done that, answer Question 1.
+
+## Part 2
+
+Calculate the covariance matrix V of the variables X, Y, and Z. When you have done that, answer Questions 2-4.
+
+```{r}
+small_data %>% 
+  ggplot(aes(x=X, y=Z)) +
+  geom_point()
+```
+```{r}
+cov(small_data$X, small_data$Y)
+cov(small_data$Z, small_data$X)
+cov(small_data$Z, small_data$Z)
+```
+```{r}
+D = as.matrix(small_data)
+
+E = cbind(
+  c(-1, 0, 1),
+  c(-1, 1, 0),
+  c(1, 1, 1))
+
+print("E:")
+E
+
+P=D %*% E
+
+print("P:")
+P
+```
+
+```{r}
+data.frame(P)
+```
+```{r}
+data.frame(P) %>%
+  ggplot(aes(x=X2, y=X1)) +
+  geom_point()
+```
+
+
+## Part 4
+
+Multiply the original data matrix V by E to obtain the matrix of principal components P. When you have done that, answer Questions 5-7.

@@ -1,0 +1,119 @@
+---
+title: "Section 5"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+population
+```
+```{r}
+mean(population$population, na.rm=TRUE)
+```
+
+```{r}
+sd(mtcars$disp)
+```
+```{r}
+median(mtcars$disp)
+```
+```{r}
+sample_mean <- mean(mpg$cty)
+sample_sd  <-  sd(mpg$cty)
+N  <- length(mpg$cty)
+
+# using student t-distribution 95% confidence interval t value
+t <- qt(p=0.025, df=N-1, lower.tail=FALSE)
+
+lwr <- sample_mean - t * sample_sd / sqrt(N)
+upr <- sample_mean + t * sample_sd / sqrt(N)
+
+ci <- c(lwr = lwr, upr = upr)
+ci
+```
+## Activity 9
+
+```{r}
+mean(starwars$height, na.rm=TRUE)
+```
+```{r}
+sd(starwars$height, na.rm=TRUE)
+```
+```{r}
+starwars_sample <- starwars %>%
+  select(height) %>%
+  drop_na()
+
+sample_mean <- mean(starwars_sample$height)
+sample_sd <- sd(starwars_sample$height, na.rm=TRUE)
+N <- length(starwars_sample$height)
+
+# using student t-distribution 90% confidence interval t value
+t <- qt(p=0.05, df=N-1, lower.tail=FALSE)
+####t <- qt(p=0.0441, df=N-1, lower.tail=FALSE)
+#t
+
+lwr <- sample_mean - t * sample_sd / sqrt(N)
+upr <- sample_mean + t * sample_sd / sqrt(N)
+
+ci <- c(lwr = lwr, upr = upr)
+ci
+```
+## Crash course in bioinformatics
+
+https://learning.edx.org/course/course-v1:AdelaideX+CompX+1T2021/block-v1:AdelaideX+CompX+1T2021+type@sequential+block@7aed4ae3d16546a6910940f76e1fad48/block-v1:AdelaideX+CompX+1T2021+type@vertical+block@29c74b5208d742569b52ddeaa7c2c8f0
+
+```{r}
+library(ape)
+library(seqinr)
+library(stringr)
+```
+
+```{r}
+data(woodmouse)
+woodmouse
+```
+```{r}
+woodmouse_DNA  <- str_to_upper(c2s(woodmouse[1,]))
+woodmouse_DNA
+```
+```{r}
+# create the hashing funtion
+kmer_to_index <- function(kmer){
+  n  <- str_length(kmer)
+  letter_value  <- c("A" = 0, "C" = 1, "G" = 2, "T" = 3)
+  base  <- 1
+  index  <- 1
+  for( i in n:1){
+    nucleotide <- str_sub(kmer,start = i,end = i)
+    index  <- index + base * letter_value[nucleotide]
+    base  <- base * 4
+  }
+  return(as.numeric(index))
+}
+
+kmer_to_index("AAA")
+#kmer_to_index("AG")
+```
+
+```{r}
+# create the tally array
+k <- 5
+kmers <- numeric(4^k)
+kmers
+```
+```{r}
+# calculate the kmer totals
+N <- str_length(woodmouse_DNA)
+for (i in 1:(N - k + 1)) {
+  kmer <- str_sub(woodmouse_DNA, i, i + k - 1)
+  index <- kmer_to_index(kmer)
+  kmers[index] <- kmers[index] + 1
+}
+kmers
+```
+```{r}
+seqinr::count(woodmouse[1,], 5)
+```
+
