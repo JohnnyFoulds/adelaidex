@@ -6,8 +6,6 @@ package section06.activity10;
 
 import java.util.ArrayList;
 
-import jdk.tools.jlink.resources.plugins;
-
 /**
  * Animal --- This is the base class other animals will inherit from.
  */
@@ -118,7 +116,6 @@ class Lion extends Animal {
         this.name = name;
         this.age = age;
     }
-
 }
 
 /**
@@ -170,7 +167,7 @@ class Zebra extends Animal {
 }
 
 /**
- * Zoo --- This class represents a zoo with various animals. PLEASE NOTE: had to
+ * Zoo --- This class represents a zoo with various animals. PLEASE NOTE: Had to
  * remove the public type - ERROR: The public type Zoo must be defined in its
  * own fileJava(16777541)
  */
@@ -208,18 +205,66 @@ class Zoo {
  * ZooBuilder --- The main class for the zoo implementation for buiding the zoo.
  */
 public class ZooBuilder {
-    public static void main(String[] args) {
-        // create the zoo object
-        Zoo zoo = new Zoo();
+    public static void main(String[] args){
+        Elephant e1 = null, e2 = null;
+        Panda p1 = null, p2 = null;
+        Zoo z = null;
 
-        // add animals to the zoo
-        zoo.addAnimal(new Panda("Po", 24));
-        zoo.addAnimal(new Panda("Bao", 18));
-        zoo.addAnimal(new Elephant("Old Foot", 100));
-        zoo.addAnimal(new Zebra());
-        zoo.addAnimal(new Springbok("Francois", 54));
+        try{
+            e1 = new Elephant();
+            if(e1.name.equals("Elle")){System.out.println("PASS");}else{System.out.println("FAIL");}
+            if(e1.species.equals("Elephant")){System.out.println("PASS");}else{System.out.println("FAIL");}
+            if(e1.age == 0){System.out.println("PASS");}else{System.out.println("FAIL");}
+        } catch (Exception e) {
+            System.out.println("FAIL");
+        }
 
-        // print the information of the animals in the zoo
-        zoo.printAllInfo();
+        try{
+            p1 = new Panda();
+            if(p1.name.equals("Spot")){System.out.println("PASS");}else{System.out.println("FAIL");}
+            if(p1.species.equals("Panda")){System.out.println("PASS");}else{System.out.println("FAIL");}
+            if(p1.age == 0){System.out.println("PASS");}else{System.out.println("FAIL");}
+        } catch (Exception e) {
+            System.out.println("FAIL");
+        }
+
+        try{
+            e2 = new Elephant("Elephant2", 20);
+            if(e2.name.equals("Elephant2")){System.out.println("PASS");}else{System.out.println("FAIL");}
+            if(e2.species.equals("Elephant")){System.out.println("PASS");}else{System.out.println("FAIL");}
+            if(e2.age == 20){System.out.println("PASS");}else{System.out.println("FAIL");}
+        } catch (Exception e) {
+            System.out.println("FAIL");
+        }
+
+        try{
+            p2 = new Panda("Panda2", 12);
+            if(p2.name.equals("Panda2")){System.out.println("PASS");}else{System.out.println("FAIL");}
+            if(p2.species.equals("Panda")){System.out.println("PASS");}else{System.out.println("FAIL");}
+            if(p2.age == 12){System.out.println("PASS");}else{System.out.println("FAIL");}
+        } catch (Exception e) {
+            System.out.println("FAIL");
+        }
+
+        System.out.println("--- Testing printInfo function ---");
+        try{e1.printInfo();} catch (Exception e) { System.out.println("FAIL"); }
+        try{p1.printInfo();} catch (Exception e) { System.out.println("FAIL"); }
+        try{e2.printInfo();} catch (Exception e) { System.out.println("FAIL"); }
+        try{p2.printInfo();} catch (Exception e) { System.out.println("FAIL"); }
+
+        System.out.println("--- Testing printAll function. Should match the above output ---");
+        try{
+            z = new Zoo();
+            z.addAnimal((Animal)e1);
+            z.addAnimal((Animal)p1);
+            z.addAnimal((Animal)e2);
+            z.addAnimal((Animal)p2);
+            z.printAllInfo();
+        } catch (Exception e) {
+            System.out.println("FAIL");
+            System.out.println("");
+            System.out.println("");
+            System.out.println("");
+        }
     }
 }
