@@ -1,0 +1,188 @@
+---
+title: "Major Assignment 1"
+output: html_notebook
+---
+
+# Import Libraries
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+```
+
+# Part 1
+
+## 1.1 Read in the dataset 
+
+```{r}
+flights <- nycflights13::flights
+flights
+View(flights)
+```
+## 1.2 Produce a table that summarises the origin variable 
+
+```{r}
+origin_summary <- flights %>%
+  select(origin) %>%
+  group_by(origin) %>%
+  summarise(n=n()) %>%
+  arrange(desc(n))
+
+origin_summary
+```
+## 1.3 Produce a bar chart of the origin variable
+
+```{r}
+flights %>%
+  ggplot(aes(origin)) +
+  ggtitle("Flight Origin") +
+  geom_bar()
+```
+## 1.4 Calculate the mean and standard deviation of the distance variable
+
+```{r}
+summary(flights$distance)
+```
+## 1.5 Produce a histogram of the distance variable 
+
+```{r}
+flights %>%
+  ggplot(aes(distance)) +
+  ggtitle("Distance between airports, in miles") +
+  geom_histogram(bins=30)
+```
+# Part 2
+
+## 2.1 Produce a scatterplot
+
+```{r}
+airtime_distance <- flights %>%
+  select(air_time, distance) %>%
+  drop_na()
+
+airtime_distance %>%
+  select(air_time, distance) %>%
+  drop_na() %>%
+  ggplot(mapping = aes(x=distance, y=air_time)) +
+  ggtitle("Air Time vs Distance") +
+  geom_point() + 
+  geom_smooth()
+```
+```{r}
+cor(airtime_distance$air_time, airtime_distance$distance)
+```
+## 2.2 Produce a contingency table of carrier and origin
+
+```{r}
+contingency_flights_origin <- table(flights$carrier, flights$origin)
+contingency_flights_origin
+View(nycflights13::airlines)
+```
+## 2.3 Produce a conditional table of carrier and origin to find the percentage (%) of American Airlines departing from JFK
+
+```{r}
+contingency_flights_origin_prop <- prop.table(contingency_flights_origin)
+contingency_flights_origin_prop * 100
+```
+# 2.4. Produce side-by-side (one next to the other) boxplots of distance for each origin
+
+```{r}
+flights %>%
+  select(origin, distance) %>%
+  drop_na() %>%
+  ggplot(aes(distance)) +
+  geom_boxplot() +
+  ggtitle("Distance Summary by Origin") + 
+  coord_flip() +
+  facet_wrap(~origin)
+```
+# Part 3
+
+## 3.1 Calculate how many flights departed from JFK in May 2013
+
+```{r}
+flights %>%
+  filter(origin == "JFK", month == 5) %>%
+  count()
+```
+## 3.2 Identify the carrier and the airport that had the first flight of 2013
+
+```{r}
+flights %>%
+  arrange(year, month, day, dep_time) %>%
+  left_join(airlines, by="carrier") %>%
+  select(carrier, name, origin) %>%
+  head(1)
+```
+## 3.3 Calculate the total metres travelled by flights departing NYC in 2013 (you may assume 1609.34 metres/mile)
+
+```{r}
+miles_meters <- 1609.34
+
+miles_travelled <- flights %>%
+  select(distance) %>%
+  sum()
+
+miles_travelled * miles_meters
+```
+## 3.4 Calculate the total distance in miles travelled by flights departing from NYC in 2013 for airlines with Inc. in the name 
+
+```{r}
+flights %>%
+  left_join(airlines, by="carrier") %>%
+  select(name, distance) %>%
+  filter(str_detect(name, "Inc.")) %>%
+  select(distance) %>%
+  sum()
+```
+# Part 4
+
+## 4.1 Calculate how many standard deviations greater than the mean the largest distance in the flights dataset is.
+
+```{r}
+flight_distance <- flights %>%
+  select(distance) %>%
+  drop_na()
+
+# get the summary statistics
+distance_mean <- mean(flight_distance$distance)
+distance_sd <- sd(flight_distance$distance)
+distance_max <- max(flight_distance$distance)
+
+# calculate the number of sd away
+(distance_max - distance_mean) / distance_sd
+```
+# Part 5
+
+## 5.1 Calculate the 95% confidence interval for the mean distance for flights departing NYC
+
+```{r}
+# get the total number of flights
+distance_n <- length(flight_distance$distance)
+
+# using student t-distribution 95% confidence interval t value
+t <- qt(p=0.025, df=distance_n-1, lower.tail=FALSE)
+
+# calculate the lower and upper values
+lwr <- distance_mean - t * distance_sd / sqrt(distance_n)
+upr <- distance_mean + t * distance_sd / sqrt(distance_n)
+
+c(lwr = lwr, upr = upr)
+```
+## 5.2 Calculate 95% confidence interval for the mean distance for each carrier
+
+```{r}
+flights %>%
+  select(carrier, distance)  %>%
+  drop_na() %>%
+  group_by(carrier) %>%
+  summarise(mean=mean(distance), sd=sd(distance), n=n()) %>%
+  mutate(t=qt(p=0.025, df=n-1, lower.tail=FALSE)) %>%
+  mutate(
+    lower=mean - t * sd / sqrt(n),
+    upper=mean + t * sd / sqrt(n)
+  ) %>%
+  left_join(airlines, by="carrier") %>%
+  select(carrier, name, mean, upper, lower)
+```
+
