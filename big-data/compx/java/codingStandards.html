@@ -1,0 +1,209 @@
+
+<html>
+
+    <head>
+    <title>Java coding standards and Javadoc style comments</title>
+    </head>
+    
+    <body>
+    
+    <h2><font face="Tahoma">Java coding standards and Javadoc style comments</font></h2>
+    <table border="1" width="100%">
+      <tr>
+        <td width="33%" valign="top">
+          <h2 align="left"><font face="Tahoma">Formatting Conventions</font></h2>
+          <p align="left"><font face="Tahoma"><b>Indent nested code</b><br>
+          Nested code improves readability. Every time that you open a bracket you
+          should indent the code written after it. The indentation should continue
+          until the bracket is closed. The indentation should not be that of a tab.
+          Tab indentation is too much and will make code harder to read instead of
+          easier. Three spaces is the best indentation.<br>
+          (That is what you should do for ICS111)</font></p>
+          <p align="left"><font face="Tahoma"><b>About brackets...</b><br>
+          You should <b>always</b> open a bracket at the end of a statement. You
+          should <b>always</b> close the bracket at the beginning of a line.</font></p>
+          <p align="left"><b><font face="Tahoma">Class</font></b></p>
+    
+    <pre>
+    public class MyClass{
+       ...
+    }
+    </pre>
+          <p align="left"><b><font face="Tahoma">Method definitions</font></b></p>
+    <pre>
+    void method(int j){
+       ...
+    }
+    </pre>
+          <p align="left"><b><font face="Tahoma">Loops</font></b></p>
+    <pre>
+    for(int i = 0; i<=j; i++){
+       ...
+    }
+    </pre>
+          <p align="left"><b><font face="Tahoma">If/else statements</font></b></p>
+    <pre>
+    if(j<0){
+       ...
+    }
+    else if(j>0){
+       ...
+    }
+    else{
+       ...
+    }
+    </pre>
+          <p align="left"><b><font face="Tahoma">Try/Catch/Finally</font></b></p>
+    <pre>
+    try{
+       ...
+    }
+    catch(Exception e){
+       ...
+    }
+    finally{
+       ...
+    }
+    </pre>
+          <p align="left"><b><font face="Tahoma">Switch</font></b></p>
+    <pre>
+    switch(value){
+       case 0:
+        ...
+        break;
+       default:
+        ...
+        break;
+    }
+    </pre>
+          <p align="left"><font face="Tahoma"><b>White Space<br>
+          </b>Code needs some strategically located white space to improve
+          readability.&nbsp; Use blank lines to separate each logical section of the
+          program.</font></p>
+          </td>
+        <td width="33%" valign="top">
+          <h2><font face="Tahoma">Naming Conventions</font></h2>
+          <p><font face="Tahoma">Use <b><i>meaningful names</i></b> for your classes
+          and your methods follow the specific conventions mentioned here.</font></p>
+          <ul>
+            <li><font face="Tahoma">Do not use names that are too long</font>
+    <pre>
+    int iSchoolIdentificationNumber
+    </pre>
+    </li>
+            <li><font face="Tahoma">Capitalize only the first letter in 
+    acronyms.</font>
+    <pre>
+    int iPdaNumber; //instead of PDA
+    </pre>
+    </li>
+            <li><font face="Tahoma">Capitalize the first letter of each word that
+              appears in a class or interface name.</font>
+    <pre>
+    public class MyClass
+    </pre>
+    </li>
+            <li><font face="Tahoma">Use nouns when naming classes</font></li>
+            <li><font face="Tahoma">Use nouns or adjectives when naming 
+    interfaces.</font></li>
+            <li><font face="Tahoma">For method names use lowercase for the first
+              word and capitalize only the first letter of each of the remaining
+              words. Use verbs as names for methods.</font>
+    <pre>
+    public void loveFinder(String s) 
+    </pre>
+    </li>
+            <li><font face="Tahoma">For variable names use lowercase for the first
+              word and capitalize only the first letter of each of the remaining
+              words. Use nouns as names for variables.</font>
+    <pre>
+    int iBookEntries 
+    </pre>
+    
+    </li>
+            <li><font face="Tahoma">To name constants use uppercase for each word
+              and separate each pair of words with an underscore. This is only
+              applicable in constant naming.</font>
+    <pre>
+    final double PI = 3.1416;
+    final int MAX_COUNT = 27;
+    </pre>
+    </li>
+            <li>Use descriptive names for all variables, function names, constants, and 
+    other identifiers.&nbsp;</li>
+            <li> Use single letter identifiers only for the counter in loops.</li>
+            <li>Variable names start with lower case.</li>
+            <li>Multi-word identifiers are internally capitalized.</li>
+            <li>Do not use hyphens or underscores to separate multi-word identifiers.</li>
+          </ul>
+        </td>
+        <td width="34%" valign="top">
+          <h2><font face="Tahoma">JAVADOC style comments</font></h2>
+          <p>Every documentation comment begins with:<br>
+          &quot;/**&quot;<br>
+          and ends with<br>
+          &quot;*/&quot;</p>
+          <p>A one-line comment begins with &quot;//&quot;</p>
+          <ul>
+            <li>Use one-line comments to explain implementation details such as the
+              purpose of specific variables and expressions.</li>
+    <pre>
+    int iCountPer=0; //counts persons
+    </pre>
+    
+            <li>Explain local variable declarations with and end-line comment.</li>
+          </ul>
+          <p> Every class and method should be preceded with a descriptive comment using 
+    the "JavaDoc" notational convention.&nbsp;</p>
+          <p>In the class, the comment should name the class, describe its purpose, and 
+    name the author.</p>
+    <pre> 
+    /**
+     * Hello1 --- program to print "Hello World".
+     * @author    Blanca Polo
+     */
+    public class Hello1 {
+     :
+    }
+    </pre>
+         <p>In the method, the comment should describe its purpose, 
+    comment all arguments, the return value, and any exceptions using JavaDoc keywords.</p>
+    <pre> 
+     /**
+       * Prints out "Hello World" 
+       * and the command line arguments.
+       * @param arg A string array containing 
+       * the command line arguments.
+       * @exception Any exception
+       * @return No return value.
+       */ 
+      public static void main (String[] arg){
+       :
+      }
+    </pre>
+          <hr>
+          <h2>Programming Conventions</h2>
+          <ul>
+            <li>Make all fields private, doing so ensures consistency of the member
+              data because only the owning member can make changes to it.</li>
+            <li>Clarify the order of operations with parenthesis.</li>
+            <li>Always code a <i>break </i>statement in the last case of a switch
+              statement</li>
+            <li><font face="Tahoma">Use the keyword <b>this</b> to distinguish field
+              variables from local variables.</font></li>
+            <li><font face="Tahoma">When a constructor or <b>set</b> method assigns
+              a parameter to a field, give that parameter the same name as the
+              field.</font></li>
+          </ul>
+      </tr>
+    </table>
+    <p align="left"><font face="Tahoma"><b><i>&quot;No standard is perfect and no
+    standard is universally applicable. Sometimes you will&nbsp; find yourself in a
+    situation where you need to deviate from the established standard. Before you
+    decide to ignore a rule, you should first make sure you understand why the rule
+    exists and what the consequences are if it is not applied. If you decide you
+    must violate a rule, then document why you have done so.&quot;*</i></b></font></p>
+    
+    </body>
+    
+    </html>    

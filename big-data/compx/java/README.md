@@ -14,3 +14,6 @@ mv id_* ~/.ssh/
 sudo chmod 600 ~/.ssh/id_rsa
 sudo chmod 600 ~/.ssh/id_rsa.pub
 ```
+
+## Web Reference
+- [Java coding standards and Javadoc style comments](http://www2.hawaii.edu/~tp_200/ics111/material/codingStandards.html)
