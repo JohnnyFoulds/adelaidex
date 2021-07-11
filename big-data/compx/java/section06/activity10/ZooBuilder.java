@@ -22,7 +22,7 @@ class Animal {
     }
 
     /**
-     * Construct a new animal class with specific attibutes.
+     * Construct a new animal class with specific attributes.
      * 
      * @param name    The animal name.
      * @param species The species the animal belongs to.
@@ -202,7 +202,7 @@ class Zoo {
 }
 
 /**
- * ZooBuilder --- The main class for the zoo implementation for buiding the zoo.
+ * ZooBuilder --- The main class for the zoo implementation for building the zoo.
  */
 public class ZooBuilder {
     public static void main(String[] args){
