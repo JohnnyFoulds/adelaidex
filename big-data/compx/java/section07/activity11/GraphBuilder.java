@@ -182,7 +182,16 @@ class Edges {
      * @param name The the node to remove.
      */
     public void removeNode(Node node) {
+        // remove the node entry
         this.edges.remove(node.name);
+
+        // remove connections in the other nodes
+        for ( Map.Entry<String, ArrayList<Node>> edgeEntry : this.edges.entrySet() ) {
+            ArrayList<Node> connections = edgeEntry.getValue();
+            if (connections.contains(node)) {
+                connections.remove(node);
+            }
+        }
     }
 
     /**
@@ -243,7 +252,19 @@ public class GraphBuilder {
         Graph graph = new Graph();
         graph.addNode("n1");
         graph.addNode("n2");
+        graph.addNode("n3");
+        graph.addNode("n4");
         graph.addEdge("n1", "n2");
+        graph.addEdge("n1", "n3");
+        graph.addEdge("n3", "n4");
+        graph.printStructure();
+
+        System.out.println("-- remove n1-n2 edge");
+        graph.removeEdge("n1", "n2");
+        graph.printStructure();
+
+        System.out.println("-- remove n4");
+        graph.removeNode("n4");
         graph.printStructure();
     }
 }
