@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.Arrays;
 
 /**
  * TableRow --- A TableRow object represents a single row of data values, stored in columns, from a table.
@@ -179,66 +180,66 @@ public class Flights extends Table {
         }
     }
 
-/**
- * Determine the max value from a set of data points.
- * @param data The float array of values to determine the maximum value for.
- * @return Return the max value.
- */
-public static float getMax(float data[]) {
-    float max = data[0];
-  
-    for (int i = 0; i < data.length; i++) {
-      if (data[i] > max) {
-        max = data[i];
-      }
+    /**
+     * Determine the max value from a set of data points.
+     * 
+     * @param data The float array of values to determine the maximum value for.
+     * @return Return the max value.
+     */
+    public static double getMax(double data[]) {
+        double max = data[0];
+
+        for (int i = 0; i < data.length; i++) {
+            if (data[i] > max) {
+                max = data[i];
+            }
+        }
+
+        return max;
     }
-  
-    return max;
-  }
-  
-  /*
-   * Determine the max value from a set of data points.
-   */
-  public static float getMin(float data[]) {
-    float min = data[0];
-  
-    for (int i = 0; i < data.length; i++) {
-      if (data[i] < min) {
-        min = data[i];
-      }
+
+    /*
+     * Determine the max value from a set of data points.
+     */
+    public static double getMin(double data[]) {
+        double min = data[0];
+
+        for (int i = 0; i < data.length; i++) {
+            if (data[i] < min) {
+                min = data[i];
+            }
+        }
+
+        return min;
     }
-  
-    return min;
-  }
-  
-  /*
-   * Calculate the mean for the data points.
-   */
-  public static getMean(float[] data) {
-    float total = 0;
-  
-    // calculate the sum of the data points
-    for (int i = 0; i < data.length; i++) {
-      total += data[i];
+
+    /*
+     * Calculate the mean for the data points.
+     */
+    public static double getMean(double[] data) {
+        double total = 0;
+
+        // calculate the sum of the data points
+        for (int i = 0; i < data.length; i++) {
+            total += data[i];
+        }
+
+        return total / data.length;
     }
-  
-    return total / data.length;
-  }
-  
-  /*
-   * Determine the data point median
-   */
-  public static Float getMedian(float[] data) {
-    data = sort(data);
-    int middle = data.length / 2;
-  
-    if (data.length % 2 == 0) {
-      return (data[middle - 1] + data[middle]) / 2.0;
-    } else {
-      return data[middle];
-    }
-  }    
-    
+
+    /*
+     * Determine the data point median
+     */
+    public static double getMedian(double[] data) {
+        Arrays.sort(data);
+        int middle = data.length / 2;
+
+        if (data.length % 2 == 0) {
+            return (data[middle - 1] + data[middle]) / 2.0;
+        } else {
+            return data[middle];
+        }
+    }    
 
     /**
      * This is the entry point to the application for answering the assignment questions.
