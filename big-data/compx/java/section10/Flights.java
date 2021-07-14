@@ -44,6 +44,16 @@ class TableRow {
         int column = this.columns.indexOf(columnName);
         return this.values[column];
     }
+
+    /**
+     * Get a double value from the specified column
+     * @param columnName The name of the column to get the value for.
+     * @return Returns the value of the column.
+     */
+    public double getDouble(String columnName) {
+        int column = this.columns.indexOf(columnName);
+        return Double.parseDouble(this.values[column]);
+    }
 }
 
 /**
@@ -59,6 +69,18 @@ class Table {
     public Table() {
         this.columns = new ArrayList<String>();
         this.rows = new ArrayList<TableRow>();
+    }
+
+    /**
+     * Create a new table from an ArrayList of TableRows.
+     * @param rows The rows to initialize the table with.
+     */
+    public Table(ArrayList<TableRow> rows) {
+        this();
+        if (rows.size() > 0) {
+            this.columns = rows.get(0).columns;
+            this.rows = rows;
+        }
     }
 
     /**
@@ -98,12 +120,20 @@ class Table {
     }
 
     /**
+     * 	Gets all rows from the table.
+     * @return All the rows in the table.
+     */
+    public ArrayList<TableRow> rows() {
+        return this.rows();
+    }
+
+    /**
      * 	Finds the rows in the Table that contain the value provided, and returns references to those rows.
      * @param value The value to match.
      * @param columnName Title of the column to search.
      * @return Returns an ArrayList of rows matching the criteria.
      */
-    ArrayList<TableRow> findRows(String value, String columnName) {
+    public ArrayList<TableRow> findRows(String value, String columnName) {
         ArrayList<TableRow> results = new ArrayList<TableRow>();
 
         for (TableRow row : this.rows) {
@@ -113,6 +143,36 @@ class Table {
         }
 
         return results;
+    }
+
+    /**
+     * Get a column as a string array.
+     * @param columnName The column to convert to an array.
+     * @return Returns a String array with all values in the column.
+     */
+    public String[] toArray(String columnName) {
+        String[] result = new String[this.getRowCount()];
+
+        for (int i = 0; i < this.getRowCount(); i++) {
+            result[i] = this.getRow(i).getString(columnName);
+        }
+
+        return result;
+    }
+
+    /**
+     * Get a column as a double array.
+     * @param columnName The column to convert to an array.
+     * @return Returns a double array with all values in the column.
+     */
+    public double[] toDoubleArray(String columnName) {
+        double[] result = new double[this.getRowCount()];
+
+        for (int i = 0; i < this.getRowCount(); i++) {
+            result[i] = this.getRow(i).getDouble(columnName);
+        }
+        
+        return result;
     }
 }
 
@@ -239,7 +299,7 @@ public class Flights extends Table {
         } else {
             return data[middle];
         }
-    }    
+    }
 
     /**
      * This is the entry point to the application for answering the assignment questions.
@@ -264,5 +324,16 @@ public class Flights extends Table {
                 origin,
                 flights.findRows(origin, "origin").size()));
         }
+
+        System.out.println("\n--- Part 1: Question 4-7");
+        // get the LGA rows
+        Table lgaTable = new Table(flights.findRows("LGA", "origin"));
+        
+        // get distance as a double array for processing
+        double[] lgaDistance = lgaTable.toDoubleArray("distance");
+        System.out.println("LGA min    : " + Flights.getMin(lgaDistance));
+        System.out.println("LGA median : " + Flights.getMedian(lgaDistance));
+        System.out.println("LGA mean   : " + Flights.getMean(lgaDistance));
+        System.out.println("LGA max    : " + Flights.getMax(lgaDistance));
     }
 }
