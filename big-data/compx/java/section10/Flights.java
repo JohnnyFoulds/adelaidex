@@ -9,6 +9,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * TableRow --- A TableRow object represents a single row of data values, stored in columns, from a table.
@@ -174,6 +176,23 @@ class Table {
         
         return result;
     }
+
+    /**
+     * Get the unqiue values a column contains.
+     * @param columnName The name to retrieve the list of unique values for.
+     * @return A String array containing unique values.
+     */
+    String[] getUnique(String columnName) {
+        // get the array of values for the column
+        String[] values = this.toArray(columnName);
+        List<String> valuesList = Arrays.asList(values);
+
+        // use a hash set to get the unique values
+        HashSet<String> valueSet = new HashSet<String>();
+        valueSet.addAll(valuesList);
+
+        return valueSet.toArray(new String[0]);
+    }
 }
 
 public class Flights extends Table {
@@ -335,5 +354,17 @@ public class Flights extends Table {
         System.out.println("LGA median : " + Flights.getMedian(lgaDistance));
         System.out.println("LGA mean   : " + Flights.getMean(lgaDistance));
         System.out.println("LGA max    : " + Flights.getMax(lgaDistance));
+
+        System.out.println("\n--- Part 2: Question 1-3");
+        String[] carriers = {"UA", "HA", "B6"};
+        for (String carrier : carriers) {
+            // get the flights operated by the carrier
+            Table uaTable = new Table(flights.findRows(carrier, "carrier"));
+
+            System.out.println(String.format(
+                "Unique Tailnums for %s: %s",
+                carrier,
+                uaTable.getUnique("tailnum").length));
+        }
     }
 }
