@@ -359,12 +359,31 @@ public class Flights extends Table {
         String[] carriers = {"UA", "HA", "B6"};
         for (String carrier : carriers) {
             // get the flights operated by the carrier
-            Table uaTable = new Table(flights.findRows(carrier, "carrier"));
+            Table carrierTable = new Table(flights.findRows(carrier, "carrier"));
 
             System.out.println(String.format(
                 "Unique Tailnums for %s: %s",
                 carrier,
-                uaTable.getUnique("tailnum").length));
+                carrierTable.getUnique("tailnum").length));
         }
+
+        System.out.println("\n--- Part 2: Question 4");
+        Table b6Table = new Table(flights.findRows("B6", "carrier"));
+        Table b6December = new Table(b6Table.findRows("12", "month"));
+        System.out.println("B6 unique Destinations (December): " + b6December.getUnique("dest").length);
+
+        System.out.println("\n--- Part 2: Question 5");
+        // get the total number of destinations
+        int destTotal = flights.getUnique("dest").length;
+
+        // get the destinations of LGA
+        int destLGA = new Table(
+            flights.findRows("LGA", "origin"))
+            .getUnique("dest")
+            .length;
+
+        // show the unreachable destinations count
+        System.out.println("Total destinations with no direct flight from LGA: " + 
+            (destTotal - destLGA));
     }
 }
