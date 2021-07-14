@@ -4,8 +4,49 @@
  */
 package section10;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**
+ * Implement a table index to use in the flight scheduler.
+ */
+class TableIndex {
+    public Map<String, ArrayList<TableRow>> rows;
+    public TableIndex childIndex;
+
+    /**
+     * Create a default instance of the class.
+     */
+    public TableIndex() {
+        this.rows = new HashMap<String, ArrayList<TableRow>>();
+        this.childIndex = new TableIndex();
+    }
+
+    /**
+     * Add a new row to the index.
+     * @param key The row index
+     * @param row The row to add
+     */
+    void addRow(String key, TableRow row) {
+        // get the row collection to add to
+        ArrayList<TableRow> rows = this.rows.get(key);
+        if (rows == null) rows = new ArrayList<TableRow>();
+
+        // add the row to the index
+        rows.add(row);
+        this.rows.put(key, rows);
+    }
+}
+
+/**
+ * FlightScheduler --- Implement a flight scheduled.
+ */
 public class FlightScheduler {
     protected Flights flights;
+    protected TableIndex dateIndex;
+
     /**
      * Initialize a default instance of the class.
      */
@@ -18,7 +59,11 @@ public class FlightScheduler {
      * @param flightDataFile The path to the CSV file to load.
      */
     public void loadData(String flightDataFile) {
-        this.flights.loadData(flightDataFile);
+        Table sourceData = new Flights(flightDataFile);
+
+        // create the data table with the required additional rows
+        
+
     }
 
     /**
