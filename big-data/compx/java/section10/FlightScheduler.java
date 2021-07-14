@@ -29,8 +29,7 @@ public class FlightScheduler {
      * @param flightDataFile The path to the CSV file to load.
      */
     public void loadData(String flightDataFile) {
-        // initilize these variables again in case of a second load
-        this.flights = new Flights();
+        // initilize this variable again in case of a second load
         this.clusteredFlightIndex = new HashMap<String, TableRow>();
 
         // load the data from CSV
@@ -95,6 +94,51 @@ public class FlightScheduler {
     }
 
     /**
+     * Re-allocate a flight to ECI.
+     * @param day The day of the flight.
+     * @param month The flight month.
+     * @param year The year of the flight.
+     * @param flightCode The flight code.
+     */
+    public void reallocate(int day, int month, int year, String flightCode) {
+        // get the clustered key
+        String clusteredKey = this.getClusterKey(
+            String.valueOf(day), 
+            String.valueOf(month), 
+            String.valueOf(year), 
+            flightCode);
+
+        // get the row to update
+        TableRow row = this.clusteredFlightIndex.get(clusteredKey);
+
+        // set the new origin
+        row.setString("orignal_origin", row.getString("origin"));
+        row.setString("origin", "ECI");
+    }
+
+    /**
+     * Check if a flight is moved to ECI
+     * @param day The day of the flight.
+     * @param month The flight month.
+     * @param year The year of the flight.
+     * @param flightCode The flight code.
+     * @return Returns true if the flight has been moved, false otherwise.
+     */
+    public boolean check(int day, int month, int year, String flightCode) {
+        // get the clustered key
+        String clusteredKey = this.getClusterKey(
+            String.valueOf(day), 
+            String.valueOf(month), 
+            String.valueOf(year), 
+            flightCode);
+
+        // get the row to update
+        TableRow row = this.clusteredFlightIndex.get(clusteredKey);
+
+        return row.getString("orignal_origin") != null;
+    }
+
+    /**
      * Estimate how many flights will be re-scheduled when ECI is added.
      * This is based on the simple realization that given the number of runways about 30% of flights will be send to ECI.
      * @return The estimated number of flight changes.
@@ -123,6 +167,12 @@ public class FlightScheduler {
         scheduler.loadData("section10/Flights.csv");
 
         // calculate flight re-allocation
-        System.out.println("Re-allocations: " + scheduler.estimateFlightChanges());
+        //System.out.println("Re-allocations: " + scheduler.estimateFlightChanges());
+
+        // reallocate a flight
+        System.out.println(scheduler.check(25, 2, 2013, "743"));
+        scheduler.reallocate(10, 7, 2013, "3910");
+        System.out.println(scheduler.check(10, 7, 2013, "3910"));
+        System.out.println(scheduler.check(25, 2, 2013, "743"));
     }    
 }
