@@ -195,7 +195,17 @@ class Table {
     }
 }
 
+/**
+ * Flights --- Inherit from the Table class and implement functionality specific to flights.
+ */
 public class Flights extends Table {
+    /**
+     * Create a default instance of the class.
+     */
+    public Flights() {
+
+    }
+
     /**
      * Create a new instance of the class and populate it with data read from a CSV file.
      * @param path The path to the CSV to read the data from.
