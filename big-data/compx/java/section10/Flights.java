@@ -38,6 +38,16 @@ class TableRow {
     }
 
     /**
+     * Set the string value of the column at the specified index.
+     * @param columnName The title of the column to update.
+     * @param value The value to set the column to.
+     */
+    public void	setString(String columnName, String value) {
+        int column = this.columns.indexOf(columnName);
+        this.setString(column, value);
+    }
+
+    /**
      * Get the string value from a row.
      * @param columnName The name of the column to get the value for.
      * @return Returns the value of the column.

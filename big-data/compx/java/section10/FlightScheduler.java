@@ -7,51 +7,21 @@ package section10;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
-/**
- * Implement a table index to use in the flight scheduler.
- */
-class TableIndex {
-    public Map<String, ArrayList<TableRow>> rows;
-    public TableIndex childIndex;
-
-    /**
-     * Create a default instance of the class.
-     */
-    public TableIndex() {
-        this.rows = new HashMap<String, ArrayList<TableRow>>();
-        this.childIndex = new TableIndex();
-    }
-
-    /**
-     * Add a new row to the index.
-     * @param key The row index
-     * @param row The row to add
-     */
-    void addRow(String key, TableRow row) {
-        // get the row collection to add to
-        ArrayList<TableRow> rows = this.rows.get(key);
-        if (rows == null) rows = new ArrayList<TableRow>();
-
-        // add the row to the index
-        rows.add(row);
-        this.rows.put(key, rows);
-    }
-}
 
 /**
  * FlightScheduler --- Implement a flight scheduled.
  */
 public class FlightScheduler {
     protected Flights flights;
-    protected TableIndex dateIndex;
+    protected Map<String, TableRow> clusteredFlightIndex;
 
     /**
      * Initialize a default instance of the class.
      */
     public FlightScheduler() {
         this.flights = new Flights();
+        this.clusteredFlightIndex = new HashMap<String, TableRow>();
     }
 
     /**
@@ -59,11 +29,69 @@ public class FlightScheduler {
      * @param flightDataFile The path to the CSV file to load.
      */
     public void loadData(String flightDataFile) {
+        // initilize these variables again in case of a second load
+        this.flights = new Flights();
+        this.clusteredFlightIndex = new HashMap<String, TableRow>();
+
+        // load the data from CSV
         Table sourceData = new Flights(flightDataFile);
 
-        // create the data table with the required additional rows
-        
+        // create the data table with the required additional column
+        this.flights = new Flights();
+        for (String columnName : sourceData.columns) {
+            this.flights.addColumn(columnName);
+        }
 
+        // add the new column
+        this.flights.addColumn("orignal_origin");
+        
+        // add the source rows and initialize the orignal_origin column
+        for (TableRow row : sourceData.rows) {
+            TableRow newRow = this.flights.addRow();
+            
+            // add the original data
+            for (String columnName : row.columns) {
+                newRow.setString(columnName, row.getString(columnName));
+            }
+
+            // initialize the orignal_origin column
+            newRow.setString("orignal_origin", null);
+
+            // add the row to the index
+            this.addToIndex(newRow);
+        }
+    }
+
+    /**
+     * Get the clustered key for a fligh in the index.
+     * @param day The day of the flight.
+     * @param month The flight month.
+     * @param year The year of the flight.
+     * @param flightCode The flight code.
+     * @return Return the clustered key as a string.
+     */
+    protected String getClusterKey(String day, String month, String year, String flightCode) {
+        return String.format("%s_%s_%s_%s",
+            year,
+            month,
+            day,
+            flightCode
+        );
+    }
+
+    /**
+     * Add a row to the clustered index.
+     * @param row The row to add to the index.
+     */
+    protected void addToIndex(TableRow row) {
+        String clusteredKey = this.getClusterKey(
+            row.getString("day"), 
+            row.getString("month"), 
+            row.getString("year"), 
+            row.getString("flight"));
+
+        // add the row to the index
+        this.clusteredFlightIndex.put(clusteredKey, row);
     }
 
     /**
