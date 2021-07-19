@@ -82,7 +82,7 @@ class PageRank:
 
         Args:
             n: The number of steps to perform.
-            beta: tge beta value to use to deal with spider traps.
+            beta: The beta value to use to deal with spider traps.
         """
         M = self.get_transitionmatrix()
         v = self.get_initial_vector()
