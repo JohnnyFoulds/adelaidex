@@ -17,7 +17,7 @@ import org.apache.hadoop.fs.Path;
 public class EdxWordCount
 {
 	public static class EdxMap extends Mapper<LongWritable,Text,Text,IntWritable> {
-		public void map(LongWritable key, Text value,Context context) throws IOException,InterruptedException{
+		public void map(LongWritable key, Text value, Context context) throws IOException,InterruptedException{
 			String line = value.toString().toLowerCase();
 			StringTokenizer tokenizer = new StringTokenizer(line);
 			while (tokenizer.hasMoreTokens()) {

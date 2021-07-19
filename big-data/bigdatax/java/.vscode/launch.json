@@ -11,8 +11,8 @@
             "mainClass": "${file}",
 
             "args": [
-                "One",
-                "Two-buckle-my-shoe"
+                "/workspaces/adelaidex/big-data/bigdatax/java/section05/MapReduce/src/activity06/SecondInputFile.txt",
+                "10"
             ]
         },
    ]
