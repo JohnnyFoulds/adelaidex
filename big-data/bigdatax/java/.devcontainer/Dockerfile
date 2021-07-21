@@ -35,8 +35,17 @@ SHELL ["/bin/sh", "-c"]
 USER root
 
 # [Optional] Uncomment this section to install additional OS packages.
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#     && apt-get -y install --no-install-recommends <your-package-list-here>
+ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+     && apt-get -y install --no-install-recommends python3-pip python3-setuptools
+
+# install java kernel
+USER vscode
+RUN pip3 install jupyter
+RUN cd ~ && \
+    wget https://github.com/SpencerPark/IJava/releases/download/v1.3.0/ijava-1.3.0.zip && \
+    unzip ijava-1.3.0.zip && \
+    python3 install.py --user
+USER root
 
 # [Optional] Uncomment this line to install global node packages.
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
