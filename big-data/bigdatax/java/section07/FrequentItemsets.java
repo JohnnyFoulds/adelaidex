@@ -3,6 +3,8 @@ package section07;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * np --- Matrix operations helper class.
@@ -81,6 +83,45 @@ public class FrequentItemsets {
         @Override
         public String toString() {
             return Arrays.toString(items) + " " + frequency;
+        }
+    }
+
+    /**
+     * AssociationRule --- Hold the details for an association rule.
+     */
+    public class AssociationRule {
+        public int[] x;
+        public int[] y;
+        public double confidence;
+        public String[] itemNames;
+
+        /**
+         * Create a new instance of the class.
+         * @param x The itemset that leads to y.
+         * @param y What the x itemset leads to.
+         * @param confidence The confidence of the association rule.
+         */
+        public AssociationRule(int[] x, int[] y, double confidence, String[] itemNames) {
+            super();
+            this.x = x;
+            this.y = y;
+            this.confidence = confidence;
+            this.itemNames = itemNames;
+        }
+
+        /**
+         * Return a string representation of the association rule.
+         */
+        @Override
+        public String toString() {
+            String[] xNames = new String[this.x.length];
+            String[] yNames = new String[this.y.length];
+
+            // get the item names for x
+            for (int i = 0; i < this.x.length; i++) xNames[i] = this.itemNames[this.x[i]];
+            for (int i = 0; i < this.y.length; i++) yNames[i] = this.itemNames[this.y[i]];
+
+            return Arrays.toString(xNames) + " => " + Arrays.toString(yNames) + " -- " + this.confidence;
         }
     }
 
@@ -196,12 +237,15 @@ public class FrequentItemsets {
         else
         {
             ArrayList<String> itemKeys = new ArrayList<String>();
-            // find an additional match to the input item sets
             ArrayList<ItemCount> itemSet = new ArrayList<ItemCount>();
+
+            // get the list of item columns to consider
+            Set<Integer> relevantColums = new HashSet<Integer>();
+            for (ItemCount item : itemCounts) for (int column : item.items) relevantColums.add(column);
 
             for (ItemCount itemCount : itemCounts) {
                 for (int columnIndex = 0; columnIndex < this.itemNames.size(); columnIndex++) {
-                    if (!np.contains(itemCount.items, columnIndex)) {
+                    if (relevantColums.contains(columnIndex) && !np.contains(itemCount.items, columnIndex)) {
                         // create a item count for the itemcounts with the additional column
                         int[] currentIndex = new int[itemCount.items.length + 1];
                         for (int i = 0; i < itemCount.items.length; i++) currentIndex[i] = itemCount.items[i];
@@ -242,6 +286,8 @@ public class FrequentItemsets {
         }
     }
 
+    //getAssociationRules
+
     /**
      * Print an ItemCount list with basket item names.
      * @param itemCountList The item count list to output to stdout.
@@ -270,47 +316,70 @@ public class FrequentItemsets {
      */
     public static void main(String[] args) {
         String[] itemNames = {
-            "Chocolate",
-            "Beer",
-            "Milk",
-            "Bread",
-            "Eggs",
-            "Oranges",
-            "Strawberries",
-            "Diapers",
-            "Cereal",
-            "Grapes",
-            "Apples",
-            "Brocolli",
-            "Pears"
+            "Bread", "Oranges", "Grapes", "Cereal", "Strawberries", "Eggs", "Milk", "Diapers", "Beer", "Apples"
         };
-        
+
         FrequentItemsets itemset = new FrequentItemsets(itemNames);
+        itemset.addBasket(new String[] {"Bread", "Oranges", "Grapes"});
+        itemset.addBasket(new String[] {"Grapes", "Cereal", "Strawberries"});
+        itemset.addBasket(new String[] {"Eggs", "Milk", "Bread", "Diapers", "Beer", "Strawberries"});
+        itemset.addBasket(new String[] {"Milk", "Cereal", "Diapers", "Beer", "Apples"});
+        itemset.addBasket(new String[] {"Milk", "Eggs", "Diapers", "Bread"});
+
+        //itemset.getAssociationRules(0);
+        //AssociationRule r = itemset.new AssociationRule(new int[] {0, 1}, new int[] {2}, 3, itemNames);
+        //System.out.println(r);
+
+        // String[] itemNames = {
+        //     "Chocolate",
+        //     "Beer",
+        //     "Milk",
+        //     "Bread",
+        //     "Eggs",
+        //     "Oranges",
+        //     "Strawberries",
+        //     "Diapers",
+        //     "Cereal",
+        //     "Grapes",
+        //     "Apples",
+        //     "Brocolli",
+        //     "Pears"
+        // };
         
-        // add the item baskets
-        itemset.addBasket(new String[] {"Chocolate", "Beer", "Milk", "Bread"});
-        itemset.addBasket(new String[] {"Bread", "Eggs", "Chocolate", "Oranges", "Milk", "Beer"});
-        itemset.addBasket(new String[] {"Chocolate", "Oranges", "Eggs", "Strawberries", "Milk"});
-        itemset.addBasket(new String[] {"Strawberries", "Milk", "Diapers", "Cereal"});
-        itemset.addBasket(new String[] {"Chocolate", "Beer", "Grapes", "Diapers", "Apples"});
-        itemset.addBasket(new String[] {"Milk", "Chocolate", "Cereal", "Diapers"});
-        itemset.addBasket(new String[] {"Milk", "Beer", "Chocolate", "Grapes", "Eggs", "Brocolli"});
-        itemset.addBasket(new String[] {"Brocolli", "Pears", "Milk", "Beer"});
+        // FrequentItemsets itemset = new FrequentItemsets(itemNames);
+        
+        // // add the item baskets
+        // itemset.addBasket(new String[] {"Chocolate", "Beer", "Milk", "Bread"});
+        // itemset.addBasket(new String[] {"Bread", "Eggs", "Chocolate", "Oranges", "Milk", "Beer"});
+        // itemset.addBasket(new String[] {"Chocolate", "Oranges", "Eggs", "Strawberries", "Milk"});
+        // itemset.addBasket(new String[] {"Strawberries", "Milk", "Diapers", "Cereal"});
+        // itemset.addBasket(new String[] {"Chocolate", "Beer", "Grapes", "Diapers", "Apples"});
+        // itemset.addBasket(new String[] {"Milk", "Chocolate", "Cereal", "Diapers"});
+        // itemset.addBasket(new String[] {"Milk", "Beer", "Chocolate", "Grapes", "Eggs", "Brocolli"});
+        // itemset.addBasket(new String[] {"Brocolli", "Pears", "Milk", "Beer"});
 
-        System.out.println("--- Basket Matrix ---");
-        itemset.printBasketMatrix();
+        // System.out.println("--- Basket Matrix ---");
+        // itemset.printBasketMatrix();
 
-        System.out.println("--- Basket Column Sums ---");
-        np.print(np.sum(itemset.baskets, 0));
+        // System.out.println("--- Basket Column Sums ---");
+        // np.print(np.sum(itemset.baskets, 0));
 
-        System.out.println("--- Singletons (s=3) ---");
-        ArrayList<ItemCount> singletons = itemset.getSingletons(3);
-        itemset.printItemCountList(singletons);
+        // System.out.println("--- Singletons (s=3) ---");
+        // ArrayList<ItemCount> singletons = itemset.getSingletons(3);
+        // itemset.printItemCountList(singletons);
 
-        System.out.println("--- Frequent Items (s=3, n=2) ---");
-        itemset.printItemCountList(itemset.getFrequentItems(3, 2));
+        // System.out.println("--- Frequent Items (s=3, n=2) ---");
+        // itemset.printItemCountList(itemset.getFrequentItems(3, 2));
 
-        System.out.println("--- Frequent Items (s=3, n=3) ---");
-        itemset.printItemCountList(itemset.getFrequentItems(3, 3));
+        // System.out.println("--- Frequent Items (s=3, n=3) ---");
+        // itemset.printItemCountList(itemset.getFrequentItems(3, 3));
+
+        // System.out.println("=== SUPPORT ===");
+        // System.out.println("--- Singletons (s=1) ---");
+        // itemset.printItemCountList(itemset.getSingletons(1));
+
+        // System.out.println("--- Frequent Items (s=1, n=2) ---");
+        // itemset.printItemCountList(itemset.getFrequentItems(1, 2));
+
     }
 }
