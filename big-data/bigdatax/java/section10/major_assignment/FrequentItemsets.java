@@ -40,11 +40,30 @@ public class FrequentItemsets {
     }
 
     /**
-     * Find maskets containing a set of items.
+     * Find baskets containing a set of items.
      * @param apriori The initialized Apriori object.
      * @param set The indexes, NOT names, of the set items to look for.
      */
     public static void findBasketsWithSet(Apriori apriori, int[] set) {
+        ArrayList<Integer> matchingBaskets = new ArrayList<Integer>();
+
+        // get a list of baskets matching the items
+        for (int basketIndex = 0; basketIndex < apriori.baskets.size(); basketIndex++) {
+            int[] basket = apriori.baskets.get(basketIndex);
+            int sum = 0;
+
+            for (int itemIndex = 0; itemIndex < set.length; itemIndex++) {
+                sum += basket[set[itemIndex]];
+            }
+
+            // if the basket contains all the items show it's number
+            if (sum == set.length) {
+                matchingBaskets.add(basketIndex + 1);
+            }
+        }
+
+        // show the matching baskets
+        System.out.println(Arrays.toString(matchingBaskets.toArray(new Integer[matchingBaskets.size()])));
     }
 
     /**
@@ -52,29 +71,11 @@ public class FrequentItemsets {
      * @param apriori The initialized Apriori object.
      */
     public static void Question02(Apriori apriori) {
-        System.out.println("--- Question 2: Baskets Containint (5, 20) ---");
-        ArrayList<Integer> matchingBaskets = new ArrayList<Integer>();
+        System.out.println("--- Question 2: Baskets Containing (5, 20) ---");
 
         // get the item indexes to use for searching the matrix
         int[] items = getItemIndexes(apriori, new String[] {"5", "20"});
-
-        // get a list of baskets matching the items
-        for (int basketIndex = 0; basketIndex < apriori.baskets.size(); basketIndex++) {
-            int[] basket = apriori.baskets.get(basketIndex);
-            int sum = 0;
-
-            for (int itemIndex = 0; itemIndex < items.length; itemIndex++) {
-                sum += basket[items[itemIndex]];
-            }
-
-            // if the basket contains all the items show it's number
-            if (sum == items.length) {
-                matchingBaskets.add(basketIndex + 1);
-            }
-        }
-
-        // show the matching baskets
-        System.out.println(Arrays.toString(matchingBaskets.toArray(new Integer[matchingBaskets.size()])));
+        findBasketsWithSet(apriori, items);
     }
 
 
