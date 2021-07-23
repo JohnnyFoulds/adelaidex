@@ -1,11 +1,11 @@
 import section07.*;
-import section07.FrequentItemsets.*;
+import section07.Apriori.*;
 import java.util.ArrayList;
 
 public class Activity09 {
     public static void question01() {
         String[] itemNames = { "A", "B", "C", "D", "E", "F", "G" };
-        FrequentItemsets itemset = new FrequentItemsets(itemNames);
+        Apriori itemset = new Apriori(itemNames);
 
         // add the baskets
         itemset.addBasket(new String[] {"A", "B", "D", "G"});
@@ -40,7 +40,7 @@ public class Activity09 {
 
     public static void question06() {
         String[] itemNames = { "A", "B", "C", "D", "E"};
-        FrequentItemsets itemset = new FrequentItemsets(itemNames);
+        Apriori itemset = new Apriori(itemNames);
 
         // add the baskets
         itemset.addBasket(new String[] {"A", "C", "D"});
