@@ -43,9 +43,11 @@ public class FrequentItemsets {
      * Find baskets containing a set of items.
      * @param apriori The initialized Apriori object.
      * @param set The indexes, NOT names, of the set items to look for.
+     * @param limit The maximum number of baskets to find.
      */
-    public static void findBasketsWithSet(Apriori apriori, int[] set) {
+    public static void findBasketsWithSet(Apriori apriori, int[] set, int limit) {
         ArrayList<Integer> matchingBaskets = new ArrayList<Integer>();
+        int basketsFound = 0;
 
         // get a list of baskets matching the items
         for (int basketIndex = 0; basketIndex < apriori.baskets.size(); basketIndex++) {
@@ -59,6 +61,12 @@ public class FrequentItemsets {
             // if the basket contains all the items show it's number
             if (sum == set.length) {
                 matchingBaskets.add(basketIndex + 1);
+                basketsFound++;
+
+                // quit the loop if the max number of baskets was found
+                if (basketsFound == limit) {
+                    break;
+                }
             }
         }
 
@@ -75,7 +83,7 @@ public class FrequentItemsets {
 
         // get the item indexes to use for searching the matrix
         int[] items = getItemIndexes(apriori, new String[] {"5", "20"});
-        findBasketsWithSet(apriori, items);
+        findBasketsWithSet(apriori, items, 5);
     }
 
 
