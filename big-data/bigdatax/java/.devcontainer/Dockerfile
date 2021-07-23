@@ -40,7 +40,7 @@ USER root
 
 # install java kernel
 USER vscode
-RUN pip3 install jupyter
+RUN pip3 install jupyter pandas apyori
 RUN cd ~ && \
     wget https://github.com/SpencerPark/IJava/releases/download/v1.3.0/ijava-1.3.0.zip && \
     unzip ijava-1.3.0.zip && \
