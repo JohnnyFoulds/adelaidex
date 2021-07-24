@@ -68,16 +68,19 @@ public class Apriori {
     public class ItemCount {
         public int[] items;
         public int frequency;
+        public String[] itemNames;
 
         /**
          * Initialize a new instance of the class.
          * @param items The index of the items in the set.
          * @param frequency The frequency of the combination of items found in baskets.
-         */
-        public ItemCount(int[] items, int frequency) {
+         * @param itemNames The list of item names used for displaying the association rule.
+          */
+        public ItemCount(int[] items, int frequency, String[] itemNames) {
             super();
             this.items = items;
             this.frequency = frequency;
+            this.itemNames = itemNames;
         }
 
         /**
@@ -128,6 +131,7 @@ public class Apriori {
          * @param lhs The itemset that leads to y.
          * @param rhs What the x itemset leads to.
          * @param confidence The confidence of the association rule.
+         * @param itemNames The list of item names used for displaying the association rule.
          */
         public AssociationRule(int[] lhs, int[] rhs, double confidence, String[] itemNames) {
             super();
@@ -249,7 +253,8 @@ public class Apriori {
             if (columnTotals[itemIndex] >= s) {
                 ItemCount itemCount = new ItemCount(
                     new int[] {itemIndex},
-                    columnTotals[itemIndex]
+                    columnTotals[itemIndex],
+                    this.itemNameList
                 );
 
                 singletons.add(itemCount);
@@ -307,7 +312,7 @@ public class Apriori {
                         if (!itemKeys.contains(currentIndexKey)) {
                             itemKeys.add(currentIndexKey);
 
-                            ItemCount currentItemCount = new ItemCount(currentIndex, 0);
+                            ItemCount currentItemCount = new ItemCount(currentIndex, 0, this.itemNameList);
 
                             // find matches in the baskets
                             for (int[] basket : this.baskets) {

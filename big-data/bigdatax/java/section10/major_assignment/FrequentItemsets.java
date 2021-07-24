@@ -86,6 +86,33 @@ public class FrequentItemsets {
         findBasketsWithSet(apriori, items, 5);
     }
 
+    /**
+     * For a support threshold of 5, give three different frequent triples containing item 10. For each frequent triple, list 5 basket numbers where the different items appear together.
+     * @param apriori The initialized Apriori object.
+     */
+    public static void Question03(Apriori apriori) {
+        System.out.println("--- Question 3 ---");
+
+        // get the item index of basket item "10"
+        int itemIndex = apriori.itemIndexes.get("10");
+
+        // get the freqent triples containg item 10
+        ArrayList<ItemCount> matchingTriples = new ArrayList<ItemCount>();
+        ArrayList<ItemCount> frequentTriples = apriori.getFrequentItems(5, 3);
+
+        for (ItemCount triple : frequentTriples) {
+            if (np.contains(triple.items, itemIndex)) {
+                matchingTriples.add(triple);
+            }
+        }
+
+        // for the first 3 triples, find 5 baskets containing the triple
+        for (int tripleIndex = 0; tripleIndex < 5; tripleIndex++) {
+            //System.out.println(matchingTriples.get(tripleIndex));
+        }
+
+        apriori.printItemCountList(matchingTriples);
+    }
 
     /**
      * The main entry point to perform the required computations.
@@ -121,6 +148,9 @@ public class FrequentItemsets {
         //Question01(apriori);
 
         // --- question 2 ---
-        Question02(apriori);
+        //Question02(apriori);
+
+        // --- question 3 ---
+        Question03(apriori);
     }
 }
