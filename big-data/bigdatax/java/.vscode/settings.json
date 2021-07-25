@@ -1,6 +1,7 @@
 {
     "jupyter.jupyterServerType": "local",
     "java.project.sourcePaths": [
+        "section08",
         "section10"
     ]
 }

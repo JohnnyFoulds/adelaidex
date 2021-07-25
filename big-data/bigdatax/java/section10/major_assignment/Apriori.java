@@ -88,7 +88,11 @@ public class Apriori {
          */
         @Override
         public String toString() {
-            return Arrays.toString(items) + " " + frequency;
+            // get names from the indexes
+            String[] names = new String[this.items.length];
+            for (int i = 0; i < this.items.length; i++) names[i] = this.itemNames[this.items[i]];
+
+            return Arrays.toString(names) + " " + frequency;
         }
 
         /**
@@ -409,20 +413,7 @@ public class Apriori {
      */
     public void printItemCountList(ArrayList<ItemCount> itemCountList) {
         for (ItemCount itemCount : itemCountList) {
-            // print the items in the set
-            System.out.print("[");
-            for (int i = 0; i < itemCount.items.length; i++) {
-                int itemIndex = itemCount.items[i];
-                System.out.print(this.itemNames.get(itemIndex));
-
-                if (i < itemCount.items.length - 1) {
-                    System.out.print(", ");
-                }
-            }
-            System.out.print("]");
-
-            // print the frequencey
-            System.out.println(" " + itemCount.frequency);
+            System.out.println(itemCount);
         }
     }
 }

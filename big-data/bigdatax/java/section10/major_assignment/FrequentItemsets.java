@@ -107,11 +107,15 @@ public class FrequentItemsets {
         }
 
         // for the first 3 triples, find 5 baskets containing the triple
-        for (int tripleIndex = 0; tripleIndex < 5; tripleIndex++) {
-            //System.out.println(matchingTriples.get(tripleIndex));
-        }
+        for (int tripleIndex = 0; tripleIndex < 3; tripleIndex++) {
+            ItemCount triple = matchingTriples.get(tripleIndex);
+            System.out.println("Triple " + Integer.toString(tripleIndex+1) + " : " + triple);
 
-        apriori.printItemCountList(matchingTriples);
+            // get the baskets containing the triple
+            System.out.print("    ");
+            findBasketsWithSet(apriori, triple.items, 5);
+            System.out.println();
+        }
     }
 
     /**
@@ -141,14 +145,11 @@ public class FrequentItemsets {
             apriori.addBasket(basket.toArray(new String[basket.size()]));
         }
 
-        //apriori.printBasket(12 - 1);
-        //System.out.println(Arrays.toString(np.sum(apriori.baskets, 0)));
-
         // --- question 1 ---
-        //Question01(apriori);
+        Question01(apriori);
 
         // --- question 2 ---
-        //Question02(apriori);
+        Question02(apriori);
 
         // --- question 3 ---
         Question03(apriori);
