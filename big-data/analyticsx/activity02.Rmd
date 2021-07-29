@@ -1,0 +1,125 @@
+---
+title: "Activity 2"
+output: html_notebook
+---
+
+# Load Required Libraries
+
+```{r}
+library(tidyverse)
+library(gapminder)
+```
+
+# Nest the DataFrame by country and continent
+
+```{r}
+gapminder.nested <- gapminder %>%
+  group_by(country, continent) %>%
+  nest()
+
+
+gapminder.nested
+```
+
+# Fit a linear regression of gdpPercap on year.
+
+```{r}
+gapminder.lm <- lm(gdpPercap ~ year, data=gapminder)
+summary(gapminder.lm)
+```
+
+# Fit a regression for each country in your nested data.frame
+
+```{r}
+country_model <- function(df) {
+  lm(gdpPercap ~ year, data = df)
+}
+
+gapminder.model  <- gapminder.nested %>% 
+  mutate(model = map(data, country_model), 
+         coef = map(model, broom::tidy))
+```
+
+#  Calculate measures for checking model performance
+
+```{r}
+gapminder.coef  <- gapminder.model %>% unnest(coef)
+gapminder.coef
+```
+
+```{r}
+gapminder.coef %>% 
+  mutate(term = fct_recode(term, 
+                           Intercept = "(Intercept)", 
+                           Slope = "year")) %>% 
+  ggplot(aes(estimate, fill = term)) + 
+  geom_density(show.legend = FALSE, alpha = 0.5) + 
+  geom_histogram(col = "black", fill = "lightgrey",
+                 alpha = 0.5,
+                 aes(y = ..density..)) + 
+  facet_wrap(~term, scales = "free") + 
+  scale_fill_brewer(palette = "Set1") + 
+  theme_minimal() + 
+  labs(y = NULL, x = "Estimate")
+```
+
+```{r}
+glance_df <- gapminder.model %>%
+  mutate(glance = map(model, broom::glance)) %>%
+  unnest(glance, .drop = TRUE)
+
+glance_df
+```
+
+
+# Questions
+
+## Question 1
+
+```{r}
+gapminder.model$model[[1]]
+```
+
+```{r}
+glance_df %>%
+  select(country, continent, r.squared) %>%
+  group_by(continent) %>%
+  summarize(r.squared=mean(r.squared)) %>%
+  arrange(r.squared)
+```
+
+## Question 2
+
+```{r}
+glance_df %>%
+  select(country, continent, r.squared) %>%
+  filter(r.squared < 0.25) %>%
+  arrange(country)
+```
+
+## Question 3
+
+```{r}
+glance_df %>%
+  select(country, continent, r.squared) %>%
+  group_by(continent) %>%
+  summarize(r.squared=min(r.squared)) %>%
+  arrange(r.squared)
+```
+
+## Question 4
+
+```{r}
+glance_df %>%
+  select(country, continent, r.squared) %>%
+  filter(country == 'Australia')
+```
+
+## Question 5
+
+```{r}
+glance_df %>% 
+  ggplot(aes(continent, r.squared)) + 
+  geom_jitter(aes(color=continent))
+```
+

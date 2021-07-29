@@ -1,0 +1,29 @@
+---
+title: "Activity 1"
+output: html_notebook
+---
+
+## Question 1 & 2
+
+```{r}
+mtcars.lm <- lm(mpg ~ wt, data=mtcars)
+summary(mtcars.lm)
+```
+
+## Question 3 - 5
+
+```{r}
+mtcars.lm2 <- lm(mpg ~ wt + disp, data=mtcars)
+summary(mtcars.lm2)
+```
+
+## Question 6
+
+```{r}
+wt <- 2700
+disp <- 198
+
+mpg <- 34.96055 + (-3.35082 * wt / 1000) + (-0.01773 * disp)
+print(mpg)
+```
+

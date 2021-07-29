@@ -1,0 +1,24 @@
+---
+title: "Quiz 4"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+diam.lm <- lm(price ~ carat + factor(cut,ordered=FALSE), data = diamonds)
+round(sum(diam.lm$coefficients*c(1,0.433,0,0,1,0)),2)
+```
+
+```{r}
+diam.lm2 <- lm(formula = price ~ carat * factor(cut, ordered = FALSE), data = diamonds)
+summary(diam.lm2)
+```
+
+```{r}
+round(sum(diam.lm2$coefficients*c(1,0.433,0,0,1,0,0,0,0.433,0)),2)
+```
+

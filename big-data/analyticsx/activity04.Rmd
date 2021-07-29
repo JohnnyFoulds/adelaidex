@@ -1,0 +1,78 @@
+---
+title: "Activity 4"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(modelr)
+
+set.seed(64)
+```
+
+# Data Preperation
+
+```{r}
+heights$income <- heights$income/1000
+heights <- heights[-c(721,973,1611,1641,1866,2828,3122,6178,6319,6794),]
+heights
+```
+
+# Split Data into 6 Cross Validation Intervals
+
+```{r}
+cv  <- crossv_kfold(heights, k=6)
+cv
+```
+
+# Fit Models to each training set
+
+```{r}
+models1  <- map(cv$train, ~lm(income ~ height, data = .))
+models2  <- map(cv$train, ~lm(income ~ sex, data = .))
+models3  <- map(cv$train, ~lm(income ~ education, data = .))
+```
+
+# Get Predictions using the models
+
+```{r}
+get_pred <- function(model, test_data) {
+  data <- as.data.frame(test_data)
+  pred <- add_predictions(data, model)
+  return(pred)
+}
+
+pred1  <- map2_df(models1, cv$test, get_pred, .id = "Run")
+pred2  <- map2_df(models2, cv$test, get_pred, .id = "Run")
+pred3  <- map2_df(models3, cv$test, get_pred, .id = "Run")
+```
+
+# calculate the MSE for each group
+
+```{r}
+MSE1  <- pred1 %>% group_by(Run) %>% 
+  summarise(MSE = mean( (income - pred)^2))
+MSE1
+```
+
+```{r}
+MSE2  <- pred2 %>% group_by(Run) %>% 
+  summarise(MSE = mean( (income - pred)^2))
+MSE2
+```
+
+```{r}
+MSE3  <- pred3 %>% group_by(Run) %>% 
+  summarise(MSE = mean( (income - pred)^2))
+MSE3
+```
+
+# Compare the models
+
+```{r}
+paste("Model 1 MSE:", mean(MSE1$MSE))
+paste("Model 2 MSE:", mean(MSE2$MSE))
+paste("Model 3 MSE:", mean(MSE3$MSE))
+```
+
+
