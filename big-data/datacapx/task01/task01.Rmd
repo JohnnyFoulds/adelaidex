@@ -1,0 +1,136 @@
+---
+title: "Project Task 1"
+output: _html_notebook
+---
+
+# Import Libraries
+
+```{r}
+library("tidyverse")
+library("lubridate")
+```
+
+# Data Load
+
+1.	Read in the reddit dataset correctly and provide evidence of your code.
+
+```{r}
+reddit <- read.csv("RS_2017-09_filtered70.csv")
+reddit <- as_tibble(reddit)
+reddit
+```
+
+# Data Clean
+
+2.	Remove the first column of the data frame and provide evidence.
+
+```{r}
+reddit <- select(reddit, -X)
+reddit
+```
+
+3.	Correctly identify and remove the columns that contain no data. Provide a list of the variables removed and evidence of your code. 
+
+## Identify Columns with no data
+
+```{r}
+reddit.is_empty <- reddit %>%
+  apply(
+    MARGIN=2,
+    FUN=function(x) all(is.na(x))) %>%
+  data.frame
+
+colnames(reddit.is_empty)[1] <- "empty"
+
+reddit.is_empty %>%
+  filter(empty == TRUE)
+```
+
+## Remove Empty Columns
+
+```{r}
+reddit <- reddit[, !sapply(reddit, function(x) all(is.na(x))), drop=FALSE]
+reddit
+```
+
+4.	Your code correctly identified and removed the columns that contained only one value. Provide a list of the variables removed and evidence of your code. 
+
+## Identify Columns with only one value
+
+```{r}
+reddit %>% 
+  select_if(~n_distinct(.) == 1) %>%
+  head(1)
+```
+## Remove columns with a single value
+
+```{r}
+reddit <- reddit %>% 
+  select_if(~n_distinct(.) > 1)
+  
+reddit
+```
+
+
+
+```{r}
+is.na(reddit) %>%
+  as_tibble() %>%
+  gather(key="column", value="empty") %>%
+  filter(empty == FALSE) %>%
+  group_by(column) %>%
+  summarise(count=n())
+```
+
+5.	Convert the variables created_utc and retrieved_on to unordered factors containing the weekdays. Provide tables of the frequencies for the two new variables and evidence of your code. 
+
+## Convert the columns to abbreviated week day names
+
+```{r}
+reddit <- reddit %>%
+  mutate(created_utc = as.POSIXct(created_utc, origin = "1970-01-01"))  %>%
+  mutate(retrieved_on = as.POSIXct(retrieved_on, origin = "1970-01-01")) %>%
+  mutate(created_utc = wday(created_utc, label=TRUE, abbr=TRUE))  %>%
+  mutate(retrieved_on = wday(retrieved_on, label=TRUE, abbr=TRUE))
+```
+
+## Convert the columns to factors
+
+```{r}
+reddit$created_utc <- factor(reddit$created_utc)
+reddit$retrieved_on <- factor(reddit$retrieved_on)
+```
+
+## summarize created_utc
+
+```{r}
+reddit %>%
+  select(created_utc) %>%
+  group_by(created_utc) %>%
+  summarise(freq=n())
+```
+
+## summarize retrieved_on
+
+```{r}
+reddit %>%
+  select(retrieved_on) %>%
+  group_by(retrieved_on) %>%
+  summarise(freq=n())
+```
+
+## Another test
+
+```{r}
+#reddit %>%
+#  select(created_utc, retrieved_on) %>%
+#  mutate(created_utc = as.POSIXct(created_utc, origin = "1970-01-01"))  %>%
+#  mutate(retrieved_on = as.POSIXct(retrieved_on, origin = "1970-01-01")) %>%
+#  mutate(created_utc = wday(created_utc, label=TRUE, abbr=TRUE))  %>%
+#  mutate(retrieved_on = wday(retrieved_on, label=TRUE, abbr=TRUE)) %>%
+#  gather(key="column", value="weekday") %>%
+#  group_by(column, weekday) %>%
+#  summarise(count=n())
+```
+
+
