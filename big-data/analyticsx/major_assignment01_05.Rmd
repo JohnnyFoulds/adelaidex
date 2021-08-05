@@ -1,0 +1,77 @@
+---
+title: "Major Assignment 01 : Part 5"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(nycflights13)
+
+set.seed(19)
+
+flights <- nycflights13::flights
+flights$early <- as.numeric(flights$arr_delay < 0)
+
+early_flights <- flights %>% 
+  filter(early == 1) %>%
+  summarise(total=sum(early))
+
+early_total <- early_flights[[1]]
+early_total
+```
+2.	Build a model to predict arrival delay using origin, departure delay, flight time, carrier, distance travelled, year, month, day and hour. This is a "full" model compared to those in Parts 1-4 of this assignment. 
+
+
+```{r}
+flights.model <- lm(arr_delay ~ origin + dep_delay + air_time + carrier + distance + year + month + day + hour, flights)
+summary(flights.model)
+```
+
+```{r}
+broom::tidy(flights.model)
+```
+
+3.	Use backward elimination starting from this model to create a better linear regression model to predict arrival delay. 
+
+```{r}
+lm.full <- flights.model
+lm.null <- lm(arr_delay ~ 1, data=flights)
+
+step(lm.full, scope=list(lower=lm.null), direction="backward")
+```
+
+4.	Apply 10-fold cross-validation, to the model. 
+
+```{r}
+cv <- crossv_kfold(flights, k=10)
+
+models <- 
+  map(cv$train, ~lm(arr_delay ~ origin + dep_delay + air_time + carrier + distance + month + hour, data=.))
+
+models[[6]]
+```
+
+5.	Compute the average mean-square prediction error for arrival delay using this model. 
+
+```{r}
+get_pred <- function(model, test_data) {
+  data <- as.data.frame(test_data)
+  pred <- add_predictions(data, model)
+  return(pred)
+}
+
+predictions <- map2_df(models, cv$test, get_pred, .id = "Run")
+#predictions
+
+MSE <- predictions %>%
+  drop_na() %>%
+  group_by(Run) %>% 
+  summarise(MSE = mean( (arr_delay - pred)^2))
+
+mean(MSE$MSE)
+```
+
+
+
+

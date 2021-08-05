@@ -1,0 +1,121 @@
+---
+title: "Major Assignment 01 - Part 3"
+output: _html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(nycflights13)
+```
+
+```{r}
+flights <- nycflights13::flights
+flights
+```
+
+# Part 3
+
+## Nested dataframe with a row for each carrier
+
+```{r}
+flights.nested <- flights %>%
+  group_by(carrier) %>% 
+  nest()
+
+flights.nested
+```
+
+## Fit a linear model, for each carrier
+
+```{r}
+flights_model <- function(df) {
+  lm(arr_delay ~ dep_delay, data=df)
+}
+
+flights.model <- flights.nested %>% 
+  mutate(model = map(data, flights_model), 
+         coef = map(model, broom::tidy))
+
+flights.model
+```
+
+```{r}
+yv <- flights.model %>%
+  filter(carrier == "YV")
+
+yv$data[[1]]
+```
+
+## Table of the coefficients for each carrier model
+
+```{r}
+flights.coef  <- flights.model %>% unnest(coef)
+
+flights.coef %>%
+  filter(carrier == "YV")
+```
+
+```{r}
+flights.coef  <- flights.model %>% unnest(coef)
+
+flights.coef %>%
+  filter(carrier == "UA")
+```
+
+```{r}
+flights.coef %>% print(n = Inf)
+```
+
+# Part 4
+
+## Count the number of delayed flights
+
+Create a new variable called delayed that has the value 1 if the arrival delay is greater than zero, and value 0 if the arrival delay is less than or equal to zero. Count the number of delayed flights. 
+
+```{r}
+flights$delayed <- as.numeric(flights$arr_delay > 0)
+flights
+```
+
+```{r}
+flights %>% 
+  group_by(delayed) %>%
+  summarise(count=n())
+```
+
+```{r}
+delayed_flights <- flights %>% 
+  filter(delayed == 1) %>%
+  summarise(total=sum(delayed))
+
+delayed_total <- delayed_flights[[1]]
+delayed_total
+```
+
+## Logistic Regression Model
+
+Fit a logistic regression model with delayed as the response variable and origin as the predictor.
+
+```{r}
+flights.glm <- glm(delayed ~ origin, family=binomial(), flights)
+summary(flights.glm)
+```
+
+## Produce the coefficients table for the logistic regression
+
+```{r}
+flights.glm_coef <- broom::tidy(flights.glm)
+flights.glm_coef
+```
+
+## Predictions
+
+```{r}
+newdata <- data.frame(origin=c("LGA", "JFK", "EWR"))
+predict(flights.glm, newdata=newdata, type="response")
+```
+
+
+
+

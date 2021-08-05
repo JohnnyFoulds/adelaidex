@@ -1,0 +1,62 @@
+---
+title: "Major Assignment 2 - Part 3"
+output: html_notebook
+---
+
+```{r}
+#install.packages('Rcpp')
+#install.packages("reshape")
+#library(Rcpp)
+```
+
+
+# Import Libraries
+
+```{r}
+library(readr)
+library(dplyr)
+library(caret)
+```
+
+# Load the Data
+
+```{r}
+url <- "https://gist.githubusercontent.com/tijptjik/9408623/raw/b237fa5848349a14a14e5d4107dc7897c21951f5/wine.csv"
+wine_df <-  read_delim(url, delim = ",")
+
+wine_df
+```
+
+Change the Wine variable to a categorical variable.
+
+
+```{r}
+wine_df$Wine <- factor(wine_df$Wine)
+wine_df
+```
+
+Use the caret and nnet package to classify Wine based on all other attributes, using default training and structure.
+
+```{r}
+# set the random seed
+set.seed(42)
+
+# create the model
+model <- train(Wine ~ ., wine_df, method='nnet', trace=FALSE)
+```
+
+```{r}
+# load the library and r code for plotting a neural net
+library(devtools)
+source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+
+# plot the model
+plot.nnet(model,nid=T,var.labs=F)
+```
+4. Predict the Wine variable from the trained network and produce a classification table of predicted vs actual Wine value/category. 
+
+```{r}
+prediction <- predict(model, wine_df)
+table(prediction, wine_df$Wine) 
+```
+

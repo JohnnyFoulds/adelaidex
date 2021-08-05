@@ -1,0 +1,25 @@
+---
+title: "sparklyr"
+output: html_notebook
+---
+
+```{r}
+install.packages("sparklyr")
+library(sparklyr)
+```
+```bash
+apt-get update
+apt install default-jre
+#apt install openjdk-11-jre-headless
+#apt install openjdk-8-jre-headless
+```
+
+```{r}
+spark_install()
+```
+
+```{r}
+sc <- spark_connect(master = "local")
+```
+
+

@@ -1,0 +1,137 @@
+---
+title: "Major Assignment 2 - Part 5"
+output: html_notebook
+---
+
+https://www.r-bloggers.com/2018/12/an-introduction-to-h2o-using-r/
+
+```{r}
+# this had to be upgraded
+#install.packages("data.table")
+#install.packages("bit64")
+#install.packages("arulesViz")
+```
+
+
+# Import Libraries
+
+```{r}
+library(nycflights13)
+library(h2o)
+```
+
+# Initiate H2O
+
+```{r}
+h2o.init()
+```
+
+2.	Load the nycflights13 data as a data frame.
+
+```{r}
+flights <- nycflights13::flights
+```
+
+3.	Write the data out to a .csv file and read it back again (this solves a data format issue). 
+
+```{r}
+write.csv(flights,"flights.csv", row.names=FALSE)
+flights <- read.csv("flights.csv")
+```
+
+4.	Create a H2O data frame from the data. 
+
+```{r}
+flights.hex <- as.h2o(flights)
+h2o.describe(flights.hex)
+```
+5.	Create a new categorical variable in the frame called late_arrival that is 1 if arr_delay is greater than or equal to 30.
+
+```{r}
+flights.hex$late_arrival <- as.factor(flights.hex$arr_delay >= 30)
+h2o.describe(flights.hex)
+```
+
+6.	Create a data split of the H2O frame with 80% of the data being used for training (flight_train) and 20% used for testing (flight_test), ensuring repeatability by setting the seed for the random sampling of the split to be 42. 
+
+```{r}
+splits <- h2o.splitFrame(data = flights.hex,
+                         ratios = c(0.8),
+                         seed = 42)
+
+flight_train <- splits[[1]]
+flight_test <- splits[[2]]
+
+print(paste0("Number of rows in train set: ", h2o.nrow(flight_train)))
+print(paste0("Number of rows in test set: ", h2o.nrow(flight_test)))
+```
+
+7.	Create a predictors set predictors from sched_dep_time, dep_delay, air_time, and distance. 
+
+```{r}
+predictors = c("sched_dep_time", "dep_delay", "air_time", "distance")
+```
+
+8.	Create a deep learning H20 model using the defaults except for:
+
+-	the predictors being predictors,
+-	the response variable being late_arrival,
+-	the training data being flight_train, and
+-	the results forced to be reproducible with seed 42.
+
+Run several times to check your results are reproducible.
+
+```{r}
+flights.dl <- h2o.deeplearning(x=predictors, y=c("late_arrival"), training_frame=flight_train, seed=42)
+summary(flights.dl)
+```
+
+9.	Plot an ROC curve for your model using the flight_test data. 
+
+```{r}
+flights.perf <- h2o.performance(model=flights.dl, newdata=flight_test)
+plot(flights.perf, type="roc")
+```
+
+10.	Calculate the prediction accuracy produced by your model using h2o.predict on your model and test data flight_test. 
+
+
+```{r}
+pred <- h2o.predict(flights.dl, newdata=flight_test)
+```
+
+```{r}
+flights.perf
+```
+
+11.	Calculate the prediction accuracy that would be yielded, for the test data flight_test, by simply using dep_delay (being larger than 30) alone as a predictor. 
+
+```{r}
+flights.hex$late_departure <- as.factor(flights.hex$dep_delay > 30)
+
+splits <- h2o.splitFrame(data = flights.hex,
+                         ratios = c(0.8),
+                         seed = 42)
+
+flight_train <- splits[[1]]
+flight_test <- splits[[2]]
+
+flights.dl <- h2o.deeplearning(x=c("late_departure"), y=c("late_arrival"), training_frame=flight_train, seed=42)
+
+flights.perf <- h2o.performance(model=flights.dl, newdata=flight_test)
+flights.perf
+```
+
+```{r}
+h2o.accuracy(flights.perf)
+```
+
+
+
+
+
+
+
+
+
+

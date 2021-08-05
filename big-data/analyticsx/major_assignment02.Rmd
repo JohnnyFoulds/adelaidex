@@ -1,0 +1,87 @@
+---
+title: "Major Assignment 2"
+output: html_notebook
+---
+
+```{r}
+library(dplyr)
+library(sparklyr)
+library(ggplot2)
+library(nycflights13)
+
+sc <- spark_connect(master = "local")
+```
+
+1. Load the flights dataset as a Spark table. Group the table by carrier and calculate the mean airtime of each carrier.
+
+```{r}
+flights_tbl <- copy_to(sc, nycflights13::flights, "flights", overwrite=TRUE)
+
+mean_airtime <- flights_tbl %>% 
+  group_by(carrier) %>% 
+  summarise(mean_airtime = mean(air_time)) %>%
+  collect
+
+print.data.frame(mean_airtime)
+```
+
+```{r}
+flights_tbl
+```
+
+
+2.	Create a new categorical variable long_flight which is 1 when a flight is further than 4,000 miles
+
+```{r}
+long_flight_feature <- flights_tbl %>% 
+  ft_binarizer("distance", "long_flight", threshold = 4000)
+
+long_flight_feature %>%
+  filter(long_flight == 1) %>%
+  summarise(count=n())
+```
+
+3.	Perform a principle component analysis using the variables flight time, distance, and departure time.
+
+```{r}
+pca_model <- tbl(sc, "flights") %>%
+  select(air_time, distance, dep_time) %>% 
+  na.omit() %>%
+  ml_pca()
+
+print(pca_model)
+```
+
+4. Use ggplot to visualise the results.
+
+```{r}
+D <- as.matrix(flights[c("air_time", "distance", "dep_time")])
+E <- as.matrix(pca_model$pc)
+P <-  D %*% E
+
+PCs <- as.data.frame(P)
+
+ggplot(PCs,aes(PC1,PC2)) + 
+  geom_point()
+```
+
+```{r}
+long_flight_feature_data <- long_flight_feature %>%
+  collect()
+
+PCs$long_flight <- long_flight_feature_data$long_flight
+PCs$dep_time <-long_flight_feature_data$dep_time
+PCs$air_time <-long_flight_feature_data$air_time
+```
+
+```{r}
+ggplot(PCs,aes(PC1,PC2)) + 
+  geom_point(aes(colour=long_flight))
+```
+
+
+
+
+
+
+

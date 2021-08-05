@@ -1,0 +1,53 @@
+---
+title: "Activity 5"
+output: html_notebook
+---
+
+```{r}
+install.packages("rattle.data")
+```
+
+```{r}
+library(dplyr)
+library(sparklyr)
+sc <- spark_connect(master = "local")
+```
+```{r}
+wine <- rattle.data::wine
+wine[-1] <- scale(wine[-1])
+```
+
+Copy the wine data into Spark.
+
+```{r}
+wine_tbl <- copy_to(sc, wine, "wine", overwrite=TRUE)
+```
+
+Next, fit a PCA model to the wine data, making sure to remove the Type variable before you do so. 
+
+```{r}
+pca_model <- tbl(sc, "wine") %>%
+  select(-Type) %>% na.omit() %>%
+  ml_pca()
+```
+
+```{r}
+print(pca_model)
+```
+You’re going to try clustering your data using only two variables - Nonflavanoids and Hue. Because there are three types of wine in our dataset, it makes sense to specify three clusters.
+
+```{r}
+kmeans_model <- wine_tbl %>%
+  ml_kmeans(formula= ~ Nonflavanoids + Hue, k=3)
+print(kmeans_model)
+```
+What is the within set sum of squared errors for your k-means clustering?
+>No idea how the fuck to do this, it is not the below.
+
+```{r}
+pred_kmeans <- ml_predict(kmeans_model, wine_tbl)
+ml_clustering_evaluator(pred_kmeans)
+```
+
+
+

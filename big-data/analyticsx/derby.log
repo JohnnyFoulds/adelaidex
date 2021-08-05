@@ -1,0 +1,13 @@
+----------------------------------------------------------------
+Sun Aug 01 19:59:43 UTC 2021:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.12.1.1 - (1704137): instance a816c00e-017b-034c-ffa0-00000c9e0400 
+on database directory memory:/home/rstudio/code/analyticsx/databaseName=metastore_db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@5ffd2b27 
+Loaded from file:/home/rstudio/spark/spark-3.1.1-bin-hadoop3.2/jars/derby-10.12.1.1.jar
+java.vendor=Ubuntu
+java.runtime.version=11.0.11+9-Ubuntu-0ubuntu2.20.04
+user.dir=/home/rstudio/code/analyticsx
+os.name=Linux
+os.arch=amd64
+os.version=5.4.72-microsoft-standard-WSL2
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''

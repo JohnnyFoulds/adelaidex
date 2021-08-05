@@ -1,0 +1,86 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(nycflights13)
+```
+
+```{r}
+flights <- nycflights13::flights
+flights
+```
+
+# Part 1
+
+## Scatterplot 
+
+```{r}
+ggplot(flights, aes(x=dep_delay, y=arr_delay)) + 
+  labs(title="Flight Delays", x="Departure Delay", y="Arrival Delay") +
+  geom_point() +
+  geom_smooth()
+```
+
+## Linear Regression
+
+```{r}
+flights.lm <- lm(arr_delay ~ dep_delay, data=flights)
+summary(flights.lm)
+```
+
+## Residual versus Fitted plot
+
+```{r}
+plot(flights.lm, which = 1)
+```
+
+```{r}
+ggplot(flights,aes(dep_delay)) + geom_bar()
+```
+
+## Normal QQ-plot
+
+```{r}
+plot(flights.lm, which=2)
+```
+## Expected Arrival Delay
+
+```{r}
+newdata <- data.frame(dep_delay=c(100))
+predict(flights.lm, newdata=newdata)
+```
+
+# Part 2
+
+## Scatterplot of arr_delay against dep_delay with colours for the different origins
+
+```{r}
+ggplot(flights,mapping = aes(x=dep_delay, y=arr_delay)) + 
+  labs(title="Flight Delays", x="Departure Delay", y="Arrival Delay") +
+  geom_point(aes(color = origin)) + 
+  geom_smooth(method = 'lm', mapping = aes(color=origin))
+```
+
+## 3.	Fit a linear model with arr_delay as the response variable; dep_delay as a predictor; origin as another predictor; and an interaction term between dep_delay and origin
+
+```{r}
+flights.lm2 <- lm(arr_delay ~ dep_delay + origin + dep_delay:origin, data=flights)
+summary(flights.lm2)
+```
+
+## Coefficients Table
+
+```{r}
+summary(flights.lm2)$coefficients
+```
+
+## Predictions
+
+```{r}
+newdata <- data.frame(dep_delay=c(0,0), origin=c("EWR", "LGA"))
+predict(flights.lm2, newdata=newdata)
+```

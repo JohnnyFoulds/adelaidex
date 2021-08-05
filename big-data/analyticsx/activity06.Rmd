@@ -1,0 +1,156 @@
+---
+title: "Activity 6"
+output: html_notebook
+---
+
+# Web Reference
+
+https://beta.rstudioconnect.com/content/1518/notebook-classification.html
+
+# Import Libraries
+
+```{r}
+library(modelr)
+library(dplyr)
+library(ggplot2)
+library(sparklyr)
+
+set.seed(77)
+```
+
+# Helper Functions
+
+```{r}
+#' ROC curve code
+#'
+#' Based on algo 1 page 866, Fawcett2005
+#'
+#' @param L observations 
+#' @param f, predicted prob.
+#'
+#' @return points in ROC space and score
+get_roc <- function(L, f) {
+  # Calculate P and N
+  P <- sum(L==1)
+  N <- sum(L==0)
+  # Order the observations by prediction
+  df  <- tibble(L, f)
+  df <- df %>% arrange(desc(f))
+  # Set TP and FP to zero
+  TP <- 0
+  FP <- 0
+  # Set up matrix for results
+  R <- NULL
+  # Set previous f
+  f_prev <- -Inf
+  # set counter
+  i <- 1
+  while(i <= length(df$L)){
+    if( df$f[i] != f_prev){
+      R <- rbind(R, c(FP/N, TP/P, df$f[i]))
+      f_prev <- df$f[i]
+    }
+    if(df$L[i] == 1){
+      TP <- TP + 1
+    } else {
+      FP <- FP + 1
+    }
+    i <- i + 1
+  }
+  R <- rbind(R, c(FP/N, TP/P, f_prev))
+  R <- data.frame(R)
+  colnames(R) <- c("FPR","TPR", "Score")
+  return(R)
+}
+```
+
+
+# Connect to Spark
+
+```{r}
+sc <- spark_connect(master = "local")
+```
+
+# Data Preperation
+
+```{r}
+height <- modelr::heights
+height <- height[-c(721,973,1611,1641,1866,2828,3122,6178,6319,6794),]
+height$marital <- as.numeric(recode(height$marital, "divorced"="0", "married"="1", "separated"="2", "single"="3", widowed="4"))
+height$sex <- ifelse(height$sex=="male",0,1)
+```
+
+## Copy Data to Spark
+
+```{r}
+height_sc <- copy_to(sc, height)
+```
+
+## Create Training and Testing partitions
+
+```{r}
+partitions <- height_sc %>% 
+  sdf_random_split(training = 0.8, test = 0.2)
+
+train_tbl <- partitions$train
+test_tbl <- partitions$test
+```
+
+# Questions
+
+## Question 1
+
+How many observations does the testing set contain?
+
+```{r}
+count(test_tbl)
+```
+
+## Question 2
+
+What is the value of the coefficient associated with height in the sex ~ income + height model?
+
+### Predictions
+
+```{r}
+ml_log <- test_tbl %>% 
+  ml_logistic_regression(sex ~ income + height)
+
+summary(ml_log)
+```
+#### ROC Curve
+
+```{r}
+pred_lr <- ml_predict(ml_log, test_tbl) %>% collect
+pred_lr$p1 <- unlist(pred_lr$probability)[ c(FALSE,TRUE) ]
+
+ROC_lr <- get_roc(L = pred_lr$sex, f = pred_lr$p1)
+ggplot(ROC_lr, aes(x = FPR, y = TPR)) + geom_line(aes(col = "LR prediction"))
+```
+
+## Question 3
+
+### Predictions
+
+```{r}
+ml_log2 <- test_tbl %>% 
+  ml_logistic_regression(sex ~ income + height + education)
+
+summary(ml_log2)
+```
+#### ROC Curve
+
+```{r}
+pred_lr2 <- ml_predict(ml_log2, test_tbl) %>% collect
+pred_lr2$p1 <- unlist(pred_lr2$probability)[ c(FALSE,TRUE) ]
+
+ROC_lr2 <- get_roc(L = pred_lr2$sex, f = pred_lr2$p1)
+ggplot(ROC_lr2, aes(x = FPR, y = TPR)) + geom_line(aes(col = "LR prediction"))
+```
+
+```{r}
+ggplot(ROC_lr, aes(x = FPR, y = TPR)) + 
+  geom_line(aes(col = "LR1 prediction")) + 
+  geom_line(data = ROC_lr2, aes(col = "LR2 prediction"))
+```
+

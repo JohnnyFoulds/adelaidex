@@ -1,0 +1,198 @@
+---
+title: "Major Assignment 2 - Part 2"
+output: html_notebook
+---
+
+# Web Reference
+
+https://beta.rstudioconnect.com/content/1518/notebook-classification.html
+
+# Import Libraries
+
+```{r}
+library(modelr)
+library(dplyr)
+library(ggplot2)
+library(sparklyr)
+library(nycflights13)
+
+set.seed(42)
+```
+
+# Helper Functions
+
+```{r}
+#' ROC curve code
+#'
+#' Based on algo 1 page 866, Fawcett2005
+#'
+#' @param L observations 
+#' @param f, predicted prob.
+#'
+#' @return points in ROC space and score
+get_roc <- function(L, f) {
+  # Calculate P and N
+  P <- sum(L==1)
+  N <- sum(L==0)
+  # Order the observations by prediction
+  df  <- tibble(L, f)
+  df <- df %>% arrange(desc(f))
+  # Set TP and FP to zero
+  TP <- 0
+  FP <- 0
+  # Set up matrix for results
+  R <- NULL
+  # Set previous f
+  f_prev <- -Inf
+  # set counter
+  i <- 1
+  while(i <= length(df$L)){
+    if( df$f[i] != f_prev){
+      R <- rbind(R, c(FP/N, TP/P, df$f[i]))
+      f_prev <- df$f[i]
+    }
+    if(df$L[i] == 1){
+      TP <- TP + 1
+    } else {
+      FP <- FP + 1
+    }
+    i <- i + 1
+  }
+  R <- rbind(R, c(FP/N, TP/P, f_prev))
+  R <- data.frame(R)
+  colnames(R) <- c("FPR","TPR", "Score")
+  return(R)
+}
+```
+
+
+# Connect to Spark
+
+```{r}
+sc <- spark_connect(master = "local")
+```
+
+# Data Preperation
+
+```{r}
+flights_tbl <- copy_to(sc, nycflights13::flights, "flights", overwrite=TRUE)
+
+flights_final_tbl <- flights_tbl %>%
+  ft_binarizer("arr_delay", "late_arrival", threshold=30)  
+```
+
+# Question 1
+
+How many late arrivals are there in the dataset?
+
+```{r}
+flights_final_tbl %>% 
+  group_by(late_arrival) %>%
+  summarise(count=count())
+```
+
+# Question 3
+
+What is the coefficient for the carrier UA in the logistic regression model?
+
+## Create Training and Testing partitions
+
+```{r}
+partitions <- flights_final_tbl %>%
+  na.omit() %>%
+  sdf_random_split(training=0.75, test=0.25, seed=42)
+
+train_tbl <- partitions$train
+test_tbl <- partitions$test
+```
+
+## Use logistic regression to predict late arrivals based on carrier, departure delay, month, and year 
+
+```{r}
+ml_log <- test_tbl %>% 
+  ml_logistic_regression(late_arrival ~ carrier + dep_delay + month + year)
+
+summary(ml_log)
+```
+# Question 5
+
+What is the true positive rate when the false positive rate is 0.5 in the model?
+
+## Perform Predictions
+
+```{r}
+pred_lr <- ml_predict(ml_log, test_tbl) %>% collect
+pred_lr$p1 <- unlist(pred_lr$probability)[ c(FALSE,TRUE) ]
+```
+
+
+## Calculate the ROC values and plot the curve
+
+```{r}
+ROC_lr <- get_roc(L = pred_lr$late_arrival, f = pred_lr$p1)
+ggplot(ROC_lr, aes(x = FPR, y = TPR)) + geom_line(aes(col = "LR prediction"))
+```
+What is the true positive rate when the false positive rate is 0.5 in the model?
+
+```{r}
+ROC_lr %>%
+  filter(FPR >= 0.5)
+```
+
+# Question 6
+
+Remove each predictor variable individually to determine which is the best single predictor of late arrivals.
+
+```{r}
+calculate_roc <- function(form, data) {
+  # create the model
+  ml_log <- test_tbl %>% 
+    ml_logistic_regression(form)
+  
+  # perform the predictions
+  pred_lr <- ml_predict(ml_log, test_tbl) %>% collect
+  pred_lr$p1 <- unlist(pred_lr$probability)[ c(FALSE,TRUE) ]
+  
+  # calculate the roc values
+  return (get_roc(L = pred_lr$late_arrival, f = pred_lr$p1))
+}
+```
+
+```{r}
+roc1 <- calculate_roc(formula(late_arrival ~ carrier + dep_delay + month + year), test_tbl)
+roc2 <- calculate_roc(formula(late_arrival ~ dep_delay + month + year), test_tbl)
+roc3 <- calculate_roc(formula(late_arrival ~ month + year), test_tbl)
+roc4 <- calculate_roc(formula(late_arrival ~ year), test_tbl)
+
+
+ggplot(roc1, aes(x=FPR, y=TPR)) + 
+  geom_line(aes(col="carrier + dep_delay + month + year")) + 
+  geom_line(data=roc2, aes(col="dep_delay + month + year")) +
+  geom_line(data=roc3, aes(col="month + year")) +
+  geom_line(data=roc4, aes(col="year"))
+```
+
+```{r}
+ggplot(roc1, aes(x=FPR, y=TPR)) + 
+  #geom_line(aes(col="carrier + dep_delay + month + year")) + 
+  #geom_line(data=roc2, aes(col="late_arrival ~ carrier + dep_delay + month")) +
+  geom_line(data=roc3, aes(col="late_arrival ~ carrier + dep_delay")) +
+  geom_line(data=roc4, aes(col="late_arrival ~ carrier"))
+```
+
+
+
+
+```{r}
+ml_log <- test_tbl %>% 
+  ml_logistic_regression(late_arrival ~ dep_delay)
+
+pred <- ml_predict(ml_log, test_tbl)
+ml_binary_classification_evaluator(pred, metric_name = "areaUnderROC")
+```
+
+
+
+
+
+
