@@ -6,7 +6,7 @@ library(tm)
 library(SnowballC)
 
 # --- Reading in the data and basic data cleaning
-reddit <- read.csv("RS_2017-09_filtered70.csv")
+reddit <- read.csv("RS_2017-09_filtered70.csv", stringsAsFactors=TRUE)
 reddit <- as_tibble(reddit)
 reddit
 
@@ -106,3 +106,9 @@ reddit <- bind_cols(reddit, as_tibble(m), .name_repair="unique")
 reddit <- select(reddit, -title)
 
 colnames(reddit)
+
+# --- Recoding of factors
+
+
+
+
