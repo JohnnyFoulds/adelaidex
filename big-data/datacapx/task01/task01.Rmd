@@ -3,11 +3,20 @@ title: "Project Task 1"
 output: _html_notebook
 ---
 
+# Web References
+
+- https://laptrinhx.com/text-mining-in-r-a-tutorial-889565373/
+- https://statisticsglobe.com/r-error-cannot-allocate-vector-of-size-n-gb
+- https://www.kaggle.com/aquaregis32/text-mining-rmarkdown
+
 # Import Libraries
 
 ```{r}
-library("tidyverse")
-library("lubridate")
+library(tidyverse)
+library(lubridate)
+library(tidytext)
+library(tm)
+library(SnowballC)
 ```
 
 # Data Load
@@ -132,5 +141,128 @@ reddit %>%
 #  group_by(column, weekday) %>%
 #  summarise(count=n())
 ```
+
+6.	Your code successfully converts the titles of the reddit posts to an incidence matrix of the words that appear in at least 500 posts. Provide a list of the words that appear in at least 500 posts and incorporate the incidence matrix into the reddit data frame. Provided evidence of your code.
+
+## Step 6.1: Convert all letters to lowercase. 
+Step 6.2: Remove numbers.
+Step 6.4: Remove punctuation.
+Step 6.5: Eliminate extra white space.
+
+
+```{r}
+#reddit.titles <- reddit %>%
+#  select(title) %>%
+#  mutate(title=tolower(title)) %>%
+#  mutate(title=gsub("\\d+", "", title)) %>%
+#  mutate(title=gsub("[[:punct:]]", "", title)) %>%
+#  mutate(title=gsub("\\s+", " ", str_trim(title)))
+#  
+#reddit.titles
+```
+
+
+
+Step 6.3: Remove stop words such as "the".
+
+```{r}
+#data(stop_words)
+#
+#reddit.titles %>%
+#  unnest_tokens(word, title) %>%
+#  anti_join(stop_words, by = "word")
+```
+
+
+
+6.	Your code successfully converts the titles of the reddit posts to an incidence matrix of the words that appear in at least 500 posts. Provide a list of the words that appear in at least 500 posts and incorporate the incidence matrix into the reddit data frame. Provided evidence of your code.
+
+## Step 6.1: Convert all letters to lowercase. 
+
+
+```{r}
+docs <- Corpus(VectorSource(pull(reddit, title)))
+docs <- tm_map(docs, content_transformer(tolower))
+```
+
+## Step 6.3: Remove stop words such as "the".
+
+```{r}
+docs <- tm_map(docs, removeWords, stopwords("english"))
+```
+
+## Step 6.2: Remove numbers.
+
+```{r}
+docs <- tm_map(docs, removeNumbers)
+```
+
+## Step 6.4: Remove punctuation.
+
+```{r}
+docs <- tm_map(docs, removePunctuation)
+docs <- tm_map(docs, content_transformer(function(x) gsub(x, pattern = "–", replacement = " ")))
+```
+
+## Step 6.5: Eliminate extra white space.
+
+```{r}
+docs <- tm_map(docs, stripWhitespace)
+```
+
+## Step 6.6: Reduce all words to their stem words. For example, "car", "car's" and "cars" are all reduced to the stem "car". In some cases, the stem may not be a complete word. For example, “removed” and “removal” might be transformed to a common stem, “remov”.
+
+```{r}
+docs <- tm_map(docs, stemDocument)
+```
+
+
+Step 6.7: Represent the data as an incidence matrix with one column for each stem word and one row for each post. The body of the matrix should contain "1" when the title contains the word and "0" otherwise.
+
+
+```{r}
+# get the document term matrix and convert it to an incidence matrix
+dtm <- TermDocumentMatrix(docs)
+dtm$v <-rep(1, length(dtm$v))
+```
+
+Step 6.8: For the purpose of this project, attention will be restricted to words that appear in at least 500 titles. You will need to remove all words that appear less frequently.
+
+```{r}
+# find terms that appears at least in 500 titles
+ft <- findFreqTerms(dtm, lowfreq=500)
+
+# filter the document term matrix to only frequent terms
+dtm<-dtm[Terms(dtm)%in%ft,]
+```
+
+Step 6.9: The final result should be a matrix with 139,823 rows and one column for each word that appears at least 500 times. When this is obtained, the titles column should be removed from and the incidence matrix added to the reddit data frame.
+
+```{r}
+# convert the dtm to a matrix
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+
+pull(d, word)
+```
+
+```{r}
+# transpose the matrix and add a column prefix
+m <- t(m)
+colnames(m) <- paste("title", colnames(m), sep = "_")
+
+#add the incident matrix data to the reddit data frame
+reddit <- bind_cols(reddit, as_tibble(m), .name_repair="unique")
+
+# remove the title column
+reddit <- select(reddit, -title)
+
+colnames(reddit)
+```
+
+
+
+
 
 
