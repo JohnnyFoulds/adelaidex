@@ -197,3 +197,41 @@ reddit %>%
   data.frame() %>%
   rownames_to_column() %>%
   setNames(c("factor", "levels"))
+
+# --- Data transformation
+
+# identify numeric predictor variables
+numeric_columns <- reddit %>% 
+  select(where(is.numeric)) %>%
+  select(-starts_with("title_")) %>%
+  names()
+
+numeric_columns
+
+# get the numeric column values to plot
+numeric_data <- reddit %>% 
+  select(all_of(numeric_columns)) %>%
+  gather(key="column", value="value", -score)
+
+# plot the unchanged numeric values against score
+ggplot(numeric_data, aes(x=value, y=score)) + 
+  stat_bin_hex(bins=10) + 
+  scale_fill_continuous(low="#B6D191", high="darkgreen") +
+  geom_smooth(method='lm', color="darkgray") +
+  facet_wrap(~column, scales="free")
+
+# transform the numeric values
+scale <- function(x) log(1 + x)
+
+scaled_data <- numeric_data %>%
+  mutate_if(is.numeric, scale)
+
+# plot the scaled numeric values against score
+ggplot(scaled_data, aes(x=value, y=score)) + 
+  stat_bin_hex(bins=10) +
+  scale_fill_continuous(low="#B6D191", high="darkgreen") +
+  geom_smooth(method='lm', color="darkgray") +
+  facet_wrap(~column, scales="free")
+
+# transform the numeric values in the data set
+reddit <- reddit %>% mutate_at(all_of(numeric_columns), scale)
