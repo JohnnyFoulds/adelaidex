@@ -109,6 +109,50 @@ colnames(reddit)
 
 # --- Recoding of factors
 
+# identify factors to recode
+factor_cols <- reddit %>%
+  select_if(is.factor) %>%  
+  gather(name, value) %>% 
+  count(name, value) %>%
+  filter(n < 30) %>%
+  group_by(name) %>%
+  summarise() %>%
+  pull(name)
 
+factor_cols
 
+# recode the factors found with at least one factor occurring less than 30 times
+reddit[factor_cols] <- sapply(reddit[factor_cols], function(x) fct_lump_min(f=x, min=30, other_level="other"))
+reddit <- reddit %>% mutate_at(all_of(factor_cols), as.factor)
 
+# identify factors with more than 100 levels
+many_factor <- reddit %>%
+  select_if(is.factor) %>% 
+  sapply(nlevels) %>%
+  data.frame() %>%
+  rownames_to_column() %>%
+  setNames(c("name", "n")) %>%
+  filter(n > 100) %>%
+  pull(name)
+
+many_factor
+
+# retain only the 100 most commonly occuring levels
+reddit[many_factor] <- sapply(reddit[many_factor], function(x) fct_lump_n(f=x, n=100, other_level="other"))
+reddit <- reddit %>% mutate_at(all_of(many_factor), as.factor)
+
+# find factors that can't be successfully recoded
+removal_factors <- reddit %>%
+  select_if(is.factor) %>%  
+  gather(name, value) %>% 
+  count(name, value) %>%
+  filter(n < 30) %>%
+  group_by(name) %>%
+  summarise() %>%
+  pull(name)
+
+removal_factors
+
+# remove factors that could not be recoded
+reddit <- reddit %>%
+  select(-all_of(removal_factors))

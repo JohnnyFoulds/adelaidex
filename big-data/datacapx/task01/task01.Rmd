@@ -302,7 +302,7 @@ many_factor <- reddit %>%
 many_factor
 ```
 ```{r}
-# retrain only the 100 most commonly occuring levels
+# retain only the 100 most commonly occuring levels
 reddit[many_factor] <- sapply(reddit[many_factor], function(x) fct_lump_n(f=x, n=100, other_level="other"))
 reddit <- reddit %>% mutate_at(all_of(many_factor), as.factor)
 ```
@@ -330,8 +330,8 @@ reddit %>%
 Step 9: Some factors cannot be suitably recoded. For example, a binary factor where one level has fewer than 30 occurrences.
 
 ```{r}
-# remove factors that could not be recoded
-reddit %>%
+# find factors that can't be successfully recoded
+removal_factors <- reddit %>%
   select_if(is.factor) %>%  
   gather(name, value) %>% 
   count(name, value) %>%
@@ -339,7 +339,13 @@ reddit %>%
   group_by(name) %>%
   summarise() %>%
   pull(name)
-```
 
+removal_factors
+```
+```{r}
+# remove factors that could not be recoded
+reddit <- reddit %>%
+  select(-all_of(removal_factors))
+```
 
 
