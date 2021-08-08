@@ -156,3 +156,44 @@ removal_factors
 # remove factors that could not be recoded
 reddit <- reddit %>%
   select(-all_of(removal_factors))
+
+# find factors with only one level
+uniform_factors <- reddit %>%
+  select_if(is.factor) %>% 
+  sapply(nlevels) %>%
+  data.frame() %>%
+  rownames_to_column() %>%
+  setNames(c("name", "n")) %>%
+  filter(n == 1) %>%
+  pull(name)
+
+uniform_factors
+
+# remove uniform factors
+reddit <- reddit %>%
+  select(-all_of(uniform_factors))
+
+# --- Additional considerations and important notes
+
+# identify columns with an excessive number of missing values
+na_factors <- reddit %>%
+  sapply(function(x) sum(length(which(is.na(x))))) %>%
+  data.frame() %>%
+  rownames_to_column() %>%
+  setNames(c("name", "n")) %>%
+  filter(n > 20) %>%
+  pull(name)
+
+na_factors
+
+# remove factors with excessive NA values
+reddit <- reddit %>%
+  select(-all_of(na_factors))
+
+# list remaining factors and number of levels
+reddit %>%
+  select_if(is.factor) %>% 
+  sapply(nlevels) %>%
+  data.frame() %>%
+  rownames_to_column() %>%
+  setNames(c("factor", "levels"))
