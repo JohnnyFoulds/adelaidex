@@ -424,7 +424,7 @@ head(numeric_data)
 ```
 
 ```{r}
-# temportatu test
+# temporary test
 #numeric_data <- reddit.clean %>% 
 #  select(score, gilded, num_comments, num_crossposts) %>%
 #  gather(key="column", value="value", -score)
@@ -464,5 +464,37 @@ ggplot(scaled_data, aes(x=value, y=score)) +
 ```{r}
 # transform the numeric values in the data set
 reddit <- reddit %>% mutate_at(all_of(numeric_columns), scale)
+```
+
+# --- Assumptions and summary
+
+```{r}
+# fit a linear regression using all the columns in the dataframe
+reddit.lm <- lm(score~.,data=reddit)
+#summary(reddit.lm)
+```
+
+```{r}
+# basic model summary
+glance(reddit.lm) %>% gather()
+```
+
+```{r}
+#plot(reddit.lm, which = 1)
+```
+```{r}
+# constant spread
+#plot(reddit.lm, which = 3)
+```
+
+```{r}
+# normality
+#plot(reddit.lm, which = 2)
+```
+
+```{r}
+# diagnostic plots
+layout(matrix(c(1,2,3,4),2,2))
+plot(reddit.lm)
 ```
 

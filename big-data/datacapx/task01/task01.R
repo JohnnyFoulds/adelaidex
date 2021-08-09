@@ -235,3 +235,15 @@ ggplot(scaled_data, aes(x=value, y=score)) +
 
 # transform the numeric values in the data set
 reddit <- reddit %>% mutate_at(all_of(numeric_columns), scale)
+
+# --- Assumptions and summary
+
+# fit a linear regression using all the columns in the data frame
+reddit.lm <- lm(score~.,data=reddit)
+
+# basic model summary
+glance(reddit.lm) %>% gather()
+
+# diagnostic plots
+layout(matrix(c(1,2,3,4),2,2))
+plot(reddit.lm)
