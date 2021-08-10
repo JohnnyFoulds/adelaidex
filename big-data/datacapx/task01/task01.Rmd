@@ -589,3 +589,38 @@ update(reddit.lm, . ~ . -author_cakeday -contest_mode)  %>% glance %>% gather
 reddit.lm <- update(reddit.lm, . ~ . -author_cakeday -contest_mode)
 ```
 
+
+# --- Prediction
+
+```{r}
+# get the prediction data row
+newdata <- reddit[c(1400),]
+
+#perform the prediction
+prediction <- predict.lm(reddit.lm, newdata, interval="prediction", level=0.95)
+
+# apply the inverse transformation and display the values
+as_tibble(prediction) %>% gather(key="key", value="transformed") %>%  mutate(score=exp(transformed) - 1)
+```
+
+```{r}
+# get the updated row to perform the predictions on
+newdata <- reddit[c(1400),]
+newdata$author = "robertcat"
+newdata$num_crossposts = log(1 + 7)
+
+#perform the prediction
+prediction <- predict.lm(reddit.lm, newdata, interval="prediction", level=0.95)
+```
+
+```{r}
+# set the author to other
+newdata$author = "other"
+
+#perform the prediction
+prediction <- predict.lm(reddit.lm, newdata, interval="prediction", level=0.95)
+
+# apply the inverse transformation and display the values
+as_tibble(prediction) %>% gather(key="key", value="transformed") %>%  mutate(score=exp(transformed) - 1)
+```
+
