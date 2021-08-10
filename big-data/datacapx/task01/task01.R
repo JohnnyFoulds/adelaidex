@@ -247,3 +247,38 @@ glance(reddit.lm) %>% gather()
 # diagnostic plots
 layout(matrix(c(1,2,3,4),2,2))
 plot(reddit.lm)
+
+# --- Aliased factors
+
+# get a list of the factor names
+factor_names <- reddit %>%
+  select_if(is.factor) %>%
+  names()
+
+# function to match aliased coefficient back to original factor
+find_match <- function(value, list) {
+  for (i in nchar(value):1) {
+    current_value = substr(value, 1, i)
+    if (current_value %in% list) {
+      return(current_value)
+    }
+  }
+}
+
+# find coefficients with no value
+term_list <- names(coef(reddit.lm))[is.na(coef(reddit.lm))]
+
+# match coefficients labels to factors
+term_list <- as_tibble(term_list)
+term_list$variable <- mapply(find_match, term_list$value, MoreArgs=list(list=factor_names))
+
+# get a list of the redundant variables
+redundant_variables <- unique(term_list$variable)
+redundant_variables
+
+# remove redundant variables
+update_formula <- as.formula(
+  paste(". ~ . -", 
+  paste(redundant_variables, collapse=" -"), sep=""))
+
+reddit.lm <- update(reddit.lm, update_formula)
