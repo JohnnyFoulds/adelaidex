@@ -523,6 +523,8 @@ find_match <- function(value, list) {
       return(current_value)
     }
   }
+  
+  return(NA)
 }
 
 #find_match("author_flair_textOP", factor_names)
@@ -549,5 +551,41 @@ update_formula <- as.formula(
   paste(redundant_variables, collapse=" -"), sep=""))
 
 reddit.lm <- update(reddit.lm, update_formula)
+```
+
+# --- Simplification of the model
+
+```{r}
+#reddit.coef <- tidy(reddit.lm)
+#reddit.coef$variable <- mapply(find_match, reddit.coef$term, MoreArgs=list(list=factor_names))
+#
+#
+#reddit.coef %>%
+#  na.omit()
+```
+
+```{r}
+# unchanged model
+reddit.lm %>% glance %>% gather
+```
+
+```{r}
+# without author_cakeday
+update(reddit.lm, . ~ . -author_cakeday)  %>% glance %>% gather
+```
+
+```{r}
+# without contest_mode
+update(reddit.lm, . ~ . -contest_mode)  %>% glance %>% gather
+```
+
+```{r}
+# without author_cakeday and contest_mode
+update(reddit.lm, . ~ . -author_cakeday -contest_mode)  %>% glance %>% gather
+```
+
+```{r}
+# remove the variables from the model
+reddit.lm <- update(reddit.lm, . ~ . -author_cakeday -contest_mode)
 ```
 

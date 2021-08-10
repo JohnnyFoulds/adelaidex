@@ -263,6 +263,8 @@ find_match <- function(value, list) {
       return(current_value)
     }
   }
+  
+  return(NA)
 }
 
 # find coefficients with no value
@@ -282,3 +284,20 @@ update_formula <- as.formula(
   paste(redundant_variables, collapse=" -"), sep=""))
 
 reddit.lm <- update(reddit.lm, update_formula)
+
+# --- Simplification of the model
+
+# unchanged model
+reddit.lm %>% glance %>% gather
+
+# without author_cakeday
+update(reddit.lm, . ~ . -author_cakeday)  %>% glance %>% gather
+
+# without contest_mode
+update(reddit.lm, . ~ . -contest_mode)  %>% glance %>% gather
+
+# without author_cakeday and contest_mode
+update(reddit.lm, . ~ . -author_cakeday -contest_mode)  %>% glance %>% gather
+
+# remove the variables from the model
+reddit.lm <- update(reddit.lm, . ~ . -author_cakeday -contest_mode)
