@@ -1,0 +1,131 @@
+---
+title: "Project Task 2"
+output: _html_notebook
+---
+
+# Import Libraries
+
+```{r}
+library(tidyverse)
+library(pROC)
+library(ggplot2)
+```
+
+# Helper Functions
+
+```{r}
+#' ROC curve code
+#'
+#' Based on algo 1 page 866, Fawcett2005
+#'
+#' @param L observations 
+#' @param f, predicted prob.
+#'
+#' @return points in ROC space and score
+get_roc <- function(L, f) {
+  # Calculate P and N
+  P <- sum(L==1)
+  N <- sum(L==0)
+  # Order the observations by prediction
+  df  <- tibble(L, f)
+  df <- df %>% arrange(desc(f))
+  # Set TP and FP to zero
+  TP <- 0
+  FP <- 0
+  # Set up matrix for results
+  R <- NULL
+  # Set previous f
+  f_prev <- -Inf
+  # set counter
+  i <- 1
+  while(i <= length(df$L)){
+    if( df$f[i] != f_prev){
+      R <- rbind(R, c(FP/N, TP/P, df$f[i]))
+      f_prev <- df$f[i]
+    }
+    if(df$L[i] == 1){
+      TP <- TP + 1
+    } else {
+      FP <- FP + 1
+    }
+    i <- i + 1
+  }
+  R <- rbind(R, c(FP/N, TP/P, f_prev))
+  R <- data.frame(R)
+  colnames(R) <- c("FPR","TPR", "Score")
+  return(R)
+}
+```
+
+
+1.	Read in the reddit dataset correctly and provide evidence of your code. 
+
+```{r}
+# read the dataset
+#reddit <- read.csv("RS_2017-09_filtered70.csv", stringsAsFactors=TRUE)
+reddit <- read.csv("RS_2017-09_filtered70.csv")
+reddit <- as_tibble(reddit)
+reddit
+```
+
+```{r}
+# data selection
+reddit.selection <- select(reddit, brand_safe, num_crossposts, over_18, is_self, is_reddit_media_domain, is_video, stickied, spoiler)
+
+reddit.selection <- reddit.selection %>% 
+  mutate(brand_safe=as.logical(as.logical(brand_safe))) %>%
+  mutate(over_18=as.logical(as.logical(over_18))) %>%
+  mutate(is_self=as.logical(as.logical(is_self))) %>%
+  mutate(is_reddit_media_domain=as.logical(as.logical(is_reddit_media_domain))) %>%
+  mutate(is_video=as.logical(as.logical(is_video))) %>%
+  mutate(stickied=as.logical(as.logical(stickied))) %>%
+  mutate(spoiler=as.logical(as.logical(spoiler)))
+
+# convert the brand_safe variable to 1 and 0
+#reddit.selection <- reddit.selection %>% 
+#  mutate(brand_safe=as.factor(as.integer(as.logical(brand_safe))))
+
+# data summary
+summary(reddit.selection)
+```
+
+2.	Build a classifier based on the six factors and provide the classifier information. Provide the correct analysis about the factors. 
+
+```{r}
+# split the data in training and testing data sets
+reddit.selection <- reddit.selection %>%
+  na.omit()
+
+n <- dim(reddit.selection)[1]  
+ind <- sample(c(TRUE, FALSE), n, replace=TRUE, prob=c(0.7, 0.3))
+
+reddit.train <- reddit.selection[ind, ]
+reddit.test <- reddit.selection[!ind, ]
+
+# select the factors to include in the model
+#factors <- c("over_18", "is_self", "is_reddit_media_domain", "is_video", "stickied", "spoiler")
+factors <- c("num_crossposts", "over_18", "is_self", "is_reddit_media_domain", "is_video", "stickied", "spoiler")
+
+formula <- as.formula(paste("brand_safe ~ ", paste(factors, collapse="+")))
+
+# build the base model
+reddit.glm_base <- glm(formula, family=binomial(), reddit.train)
+```
+
+```{r}
+reddit.train$prediction <- predict(reddit.glm_base, type="response")
+auc(reddit.train$brand_safe, reddit.train$prediction)
+
+#ROC <- get_roc(L=reddit.train$brand_safe, f=reddit.train$prediction)
+
+#ggplot(ROC, aes(x = FPR, y = TPR)) +
+#  geom_line(aes(col = "Model Prediction"))
+```
+
+```{r}
+#ggplot(reddit.train, aes(x=brand_safe, y=prediction)) + 
+#  geom_jitter() + 
+#  geom_line(aes(y = prediction), col = "orange", size = 2)
+```
+
+

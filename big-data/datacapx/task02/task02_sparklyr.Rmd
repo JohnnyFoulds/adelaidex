@@ -1,0 +1,155 @@
+---
+title: "Project Task 2 - sparklyr"
+output: html_notebook
+---
+
+# Import Libraries
+
+```{r}
+library(tidyverse)
+library(sparklyr)
+```
+# Helper Functions
+
+```{r}
+#' ROC curve code
+#'
+#' Based on algo 1 page 866, Fawcett2005
+#'
+#' @param L observations 
+#' @param f, predicted prob.
+#'
+#' @return points in ROC space and score
+get_roc <- function(L, f) {
+  # Calculate P and N
+  P <- sum(L==1)
+  N <- sum(L==0)
+  # Order the observations by prediction
+  df  <- tibble(L, f)
+  df <- df %>% arrange(desc(f))
+  # Set TP and FP to zero
+  TP <- 0
+  FP <- 0
+  # Set up matrix for results
+  R <- NULL
+  # Set previous f
+  f_prev <- -Inf
+  # set counter
+  i <- 1
+  while(i <= length(df$L)){
+    if( df$f[i] != f_prev){
+      R <- rbind(R, c(FP/N, TP/P, df$f[i]))
+      f_prev <- df$f[i]
+    }
+    if(df$L[i] == 1){
+      TP <- TP + 1
+    } else {
+      FP <- FP + 1
+    }
+    i <- i + 1
+  }
+  R <- rbind(R, c(FP/N, TP/P, f_prev))
+  R <- data.frame(R)
+  colnames(R) <- c("FPR","TPR", "Score")
+  return(R)
+}
+```
+
+# Connect to Spark
+
+```{r}
+sc <- spark_connect(master = "local")
+```
+
+1.	Read in the reddit dataset correctly and provide evidence of your code. 
+
+```{r}
+# read the dataset
+reddit <- read.csv("RS_2017-09_filtered70.csv")
+reddit <- as_tibble(reddit)
+reddit
+```
+
+```{r}
+# data selection
+reddit.selection <- select(reddit, brand_safe, num_crossposts, over_18, is_self, is_reddit_media_domain, is_video, stickied, spoiler)
+
+# convert the brand_safe variable to 1 and 0
+reddit.selection <- reddit.selection %>% 
+  mutate(brand_safe=as.logical(as.logical(brand_safe))) %>%
+  mutate(over_18=as.logical(as.logical(over_18))) %>%
+  mutate(is_self=as.logical(as.logical(is_self))) %>%
+  mutate(is_reddit_media_domain=as.logical(as.logical(is_reddit_media_domain))) %>%
+  mutate(is_video=as.logical(as.logical(is_video))) %>%
+  mutate(stickied=as.logical(as.logical(stickied))) %>%
+  mutate(spoiler=as.logical(as.logical(spoiler)))
+
+# data summary
+summary(reddit.selection)
+```
+2.	Build a classifier based on the six factors and provide the classifier information. Provide the correct analysis about the factors. 
+
+
+```{r}
+# copy the dataset to spark
+reddit_tbl <- copy_to(sc, reddit.selection, "reddit", overwrite=TRUE)
+
+# split the data in training and testing data sets
+partitions <- reddit_tbl %>%
+  na.omit() %>%
+  sdf_random_split(training=0.7, test=0.3, seed=42)
+
+train_tbl <- partitions$train
+test_tbl <- partitions$test
+```
+```{r}
+# select the factors to include in the model
+factors <- c("over_18", "is_self", "is_reddit_media_domain", "is_video", "stickied", "spoiler")
+formula <- as.formula(paste("brand_safe ~ ", paste(factors, collapse="+")))
+```
+
+```{r}
+test_model <- function(title, model, formula, data) {
+  # build the model
+  ml_model <- data %>%
+    model(formula)
+
+  # perform the predictions
+  predictions <- ml_predict(ml_model, data)
+
+  # print the AUC
+  print(paste(
+    title,
+    ml_binary_classification_evaluator(predictions, metric_name = "areaUnderROC")))
+}
+
+test_model("ml_logistic_regression", ml_logistic_regression, formula, train_tbl)
+test_model("ml_random_forest", ml_random_forest, formula, train_tbl)
+test_model("ml_gradient_boosted_trees", ml_gradient_boosted_trees, formula, train_tbl)
+```
+
+
+```{r}
+#ml_log <- train_tbl %>%
+  #ml_random_forest(formula)
+  #ml_gradient_boosted_trees(formula)
+  #ml_logistic_regression(formula)
+
+#pred.train <- ml_predict(ml_log, train_tbl)
+#pred.test <- ml_predict(ml_log, test_tbl)
+
+#ml_binary_classification_evaluator(pred.train, metric_name = "areaUnderROC")
+#ml_binary_classification_evaluator(pred.test, metric_name = "areaUnderROC")
+```
+```{r}
+# perform the predictions
+#pred_lr <- pred.train %>% collect
+#pred_lr$p1 <- unlist(pred_lr$probability)[ c(FALSE,TRUE) ]
+
+# calculate the roc values
+#ROC_lr <- get_roc(L = pred_lr$late_arrival, f = pred_lr$p1)
+  
+# plot the roc curve
+#ggplot(ROC_lr, aes(x = FPR, y = TPR)) + geom_line(aes(col = "Model Prediction"))
+```
+
