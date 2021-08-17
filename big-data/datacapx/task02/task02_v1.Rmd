@@ -1,0 +1,184 @@
+---
+title: "Project Task 2"
+output: _html_notebook
+---
+
+# Import Libraries
+
+```{r}
+library(tidyverse)
+library(pROC)
+```
+
+1.	Read in the reddit dataset correctly and provide evidence of your code. 
+
+```{r}
+# read the source csv file
+reddit <- read.csv("RS_2017-09_filtered70.csv")
+reddit <- as_tibble(reddit)
+```
+
+```{r}
+# select the subset of columns of interest
+reddit.selection <- select(reddit, brand_safe, num_crossposts, over_18, is_self, is_reddit_media_domain, is_video, stickied, spoiler)
+
+# summarize the data
+reddit.selection %>%
+  mutate_if(is.character, as.factor) %>%
+  summary
+```
+All the columns except num_crossposts are Boolean values.
+
+```{r}
+# convert chatacter columns to boolean values
+reddit.selection <- reddit.selection %>%
+  mutate_if(is.character, as.logical)
+
+# data summary
+#summary(reddit.selection)
+```
+
+2.	Build a classifier based on the six factors and provide the classifier information. Provide the correct analysis about the factors. 
+
+```{r}
+# split the data in training and testing data sets
+reddit.selection <- reddit.selection %>%
+  na.omit()
+
+n <- dim(reddit.selection)[1]  
+ind <- sample(c(TRUE, FALSE), n, replace=TRUE, prob=c(0.7, 0.3))
+
+reddit.train <- reddit.selection[ind, ]
+reddit.test <- reddit.selection[!ind, ]
+
+# select the factors to include in the model
+factors <- c("over_18", "is_self", "is_reddit_media_domain", "is_video", "stickied", "spoiler")
+formula <- as.formula(paste("brand_safe ~ ", paste(factors, collapse="+")))
+
+# build the base model
+reddit.glm_base <- glm(formula, family=binomial(), reddit.train)
+```
+
+```{r}
+#summary(reddit.glm_base)
+```
+
+```{r}
+broom::tidy(reddit.glm_base)
+```
+
+```{r}
+test_model <- function(factors, data) {
+  # build the model
+  formula <- as.formula(paste("brand_safe ~ ", paste(factors, collapse="+")))
+  glm_model <- glm(formula, family=binomial(), data)
+
+  # perform the predictions
+  data$prediction <- predict(glm_model, type="response")
+
+  # return the formula and AUC value
+  return (c(
+    paste(factors, collapse="+"),
+    auc(data$brand_safe, data$prediction),
+    glm_model$aic))
+}
+
+auc_results <- list(
+  test_model(c("over_18", "is_self", "is_reddit_media_domain", "is_video", "stickied", "spoiler"), reddit.train),
+  test_model(c("over_18", "is_self", "is_reddit_media_domain"), reddit.train),
+  test_model(c("is_video", "stickied", "spoiler"), reddit.train),
+  test_model(c("over_18"), reddit.train),
+  test_model(c("is_self"), reddit.train),
+  test_model(c("is_reddit_media_domain"), reddit.train),
+  test_model(c("is_video"), reddit.train),
+  test_model(c("stickied"), reddit.train),
+  test_model(c("spoiler"), reddit.train))
+
+auc_results <- data.frame(matrix(unlist(auc_results), nrow=length(auc_results), byrow=TRUE))
+colnames(auc_results) <- c("factors", "AUC", "AIC")
+auc_results
+```
+
+3.	Build a classifier based on the six factors and the additional factor. Provide the learned classifier information. Provide the correct comparison analysis between the built model and the model built in the previous step. 
+
+```{r}
+# build a new model with num_crossposts as an additional factor
+factors <- c("num_crossposts", "over_18", "is_self", "is_reddit_media_domain", "is_video", "stickied", "spoiler")
+formula <- as.formula(paste("brand_safe ~ ", paste(factors, collapse="+")))
+reddit.glm_crosspost <- glm(formula, family=binomial(), reddit.train)
+
+
+# compare the models
+reddit.glm_base_roc <- roc(reddit.train$brand_safe, predict(reddit.glm_base, type="response", newdata=reddit.train), curve=TRUE)
+reddit.reddit.glm_crosspost_roc <- roc(reddit.train$brand_safe, predict(reddit.glm_crosspost, type="response", newdata=reddit.train), curve=TRUE)
+
+
+roc.test(reddit.glm_base_roc, reddit.reddit.glm_crosspost_roc)
+
+# function to plot a ROC Cureve
+plot_roc <- function(roc) {
+  plot(roc, 
+       print.auc=TRUE, 
+       auc.polygon=TRUE,
+       auc.polygon.col="lightblue", 
+       print.thres=TRUE, print.thres.adj = c(1, -1),
+       legacy.axes=FALSE,
+       reuse.auc=FALSE)
+}
+
+plot_roc(reddit.glm_base_roc)
+plot_roc(reddit.reddit.glm_crosspost_roc)
+#plot(reddit.glm_base_roc, print.auc=TRUE, auc.polygon=TRUE, ax.auc.polygon=TRUE, auc.polygon.col="lightblue")
+#plot(reddit.reddit.glm_crosspost_roc, add=TRUE)
+```
+
+
+```{r}
+# compare the models
+auc_results <- list(
+  test_model(c("over_18", "is_self", "is_reddit_media_domain", "is_video", "stickied", "spoiler"), reddit.train),
+  test_model(c("num_crossposts", "over_18", "is_self", "is_reddit_media_domain", "is_video", "stickied", "spoiler"), reddit.train),
+  test_model(c("num_crossposts"), reddit.train),
+  test_model(c("over_18"), reddit.train),
+  test_model(c("is_self"), reddit.train),
+  test_model(c("is_reddit_media_domain"), reddit.train),
+  test_model(c("is_video"), reddit.train),
+  test_model(c("stickied"), reddit.train),
+  test_model(c("spoiler"), reddit.train))
+  
+
+auc_results <- data.frame(matrix(unlist(auc_results), nrow=length(auc_results), byrow=TRUE))
+colnames(auc_results) <- c("factors", "AUC", "AIC")
+auc_results
+```
+
+Model/feature selection
+
+1.	Perform model selection and produce the correct selection results. Provide your result and associated code.
+
+```{r}
+# stepwise regression: forward selection
+glm.null <- glm(brand_safe ~ 1, data=reddit.train)
+step(glm.null, scope=list(upper=glm(brand_safe ~ ., data=reddit.train)), direction="forward")
+```
+```{r}
+# stepwise regression: forward selection BIC
+n <- dim(reddit.train)[1]
+
+glm.null <- glm(brand_safe ~ 1, data=reddit.train)
+step(glm.null, scope=list(upper=glm(brand_safe ~ ., data=reddit.train)), direction="forward", k = log(n))
+```
+
+
+```{r}
+# stepwise regression: backward elimination
+glm.full <- glm(brand_safe ~ ., data=reddit.train)
+step(glm.full, scope=list(lower=glm.null), direction="backward")
+```
+
+```{r}
+step(reddit.glm_crosspost, scope=list(upper=glm.full,lower=glm.null), direction="both")
+```
+
+
+

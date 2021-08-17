@@ -7,6 +7,7 @@ output: html_notebook
 
 ```{r}
 library(tidyverse)
+library(pROC)
 library(sparklyr)
 ```
 # Helper Functions
@@ -54,6 +55,7 @@ get_roc <- function(L, f) {
   return(R)
 }
 ```
+
 
 # Connect to Spark
 
@@ -126,6 +128,23 @@ test_model <- function(title, model, formula, data) {
 test_model("ml_logistic_regression", ml_logistic_regression, formula, train_tbl)
 test_model("ml_random_forest", ml_random_forest, formula, train_tbl)
 test_model("ml_gradient_boosted_trees", ml_gradient_boosted_trees, formula, train_tbl)
+```
+```{r}
+# create the model
+ml_model <- train_tbl %>%
+  ml_gradient_boosted_trees(formula)
+
+# perform the predictions
+predictions <- ml_predict(ml_model, train_tbl)
+
+head(predictions)
+```
+
+```{r}
+  predictions$p1 <- unlist(predictions$probability)[ c(FALSE,TRUE) ]
+  
+  # calculate the roc values
+  #return (get_roc(L = pred_lr$late_arrival, f = pred_lr$p1))
 ```
 
 
